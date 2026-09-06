@@ -1,0 +1,16 @@
+# 国内设备兼容基线。抬高任何一条之前，先看 docs/operations/china-devices.md。
+#
+# Chrome 70  覆盖微信 Android X5 内核的历史版本，以及老款国产机自带浏览器
+# iOS 12     覆盖微信 iOS 的 WKWebView，实际用系统 Safari 版本
+# Android 7  国产机在网存量的下沿
+# > 0.2% in CN 兜住 UC、QQ、MIUI、华为等本地内核的实际份额
+
+Chrome >= 70
+Safari >= 12
+iOS >= 12
+Firefox >= 78
+Android >= 7
+Edge >= 79
+> 0.2% in CN
+not dead
+not op_mini all

@@ -1,0 +1,49 @@
+{
+  "name": "persona16",
+  "version": "0.7.0",
+  "private": true,
+  "packageManager": "pnpm@10.23.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "check:content": "node scripts/validate-content.mjs",
+    "check:compliance": "node scripts/check-compliance.mjs",
+    "check:prod-env": "node scripts/check-prod-env.mjs",
+    "test": "node --experimental-strip-types --test scripts/*.test.mts",
+    "ship": "npm run check:content && npm run check:compliance && npm run check:china && npm run test && npm run typecheck && npm run build",
+    "check:pay-rotation": "node scripts/check-pay-rotation.mjs",
+    "refund": "node --experimental-strip-types --import ./scripts/register-ts.mjs scripts/refund.mts",
+    "seo:ping": "node scripts/ping-search-engines.mjs",
+    "build:icons": "node scripts/build-icons.mjs",
+    "check:china": "node scripts/check-china.mjs",
+    "export:art": "node --experimental-strip-types --import ./scripts/register-ts.mjs scripts/export-type-art.mts"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "prisma": "7.10.0",
+    "typescript": "5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma"
+    ]
+  }
+}

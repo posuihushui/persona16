@@ -1,0 +1,1380 @@
+/*
+ * Persona16 样式层。
+ *
+ * 不使用 CSS 框架。原因是站点主要在微信 X5 内核、MIUI 浏览器、华为浏览器、
+ * UC 和 QQ 浏览器里打开，这些内核普遍落后主线好几代。Tailwind v4 依赖
+ * @property、color-mix、级联层和 oklab，在这些环境里会整块失效，
+ * 而本项目一个工具类都没用到，只是在用它的 reset，不值得为此牺牲兼容性。
+ *
+ * 兼容基线见 .browserslistrc 与 docs/operations/china-devices.md。
+ * 组件里不写死颜色和字号，一律用这里的变量。
+ */
+
+/* ============ reset ============ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* 国产浏览器下拉刷新会把页面拽出白边 */
+  overscroll-behavior-y: none;
+}
+
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ============ 设计令牌 ============ */
+
+:root {
+  color-scheme: light;
+
+  --ink-900: #14162b;
+  --ink-700: #33365a;
+  --ink-500: #5d6183;
+  --ink-400: #8a8ea9;
+  --ink-300: #b9bccd;
+
+  --surface: #fbfaf7;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f2f1ec;
+  --line: #e5e3dc;
+
+  --accent: #5b6abf;
+  --accent-strong: #46539c;
+  --accent-soft: #eceefa;
+  --accent-ink: #ffffff;
+
+  --warm: #c9743a;
+  --warm-soft: #fbeee3;
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.0625rem;
+  --step-2: 1.25rem;
+  --step-3: 1.5rem;
+  --step-4: 2rem;
+  --step-5: 2.75rem;
+
+  --shadow-card: 0 1px 2px rgba(20, 22, 43, 0.05), 0 8px 24px -12px rgba(20, 22, 43, 0.18);
+  --shadow-lift: 0 2px 4px rgba(20, 22, 43, 0.06), 0 16px 40px -16px rgba(20, 22, 43, 0.28);
+
+  --page-max: 30rem;
+
+  /* 刘海屏、挖孔屏、底部手势条。不支持 env() 的内核回落到 0 */
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+  --safe-left: 0px;
+  --safe-right: 0px;
+}
+
+@supports (top: env(safe-area-inset-top)) {
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+    --safe-right: env(safe-area-inset-right);
+  }
+}
+
+/*
+ * prefers-color-scheme 需要 Chrome 76 / iOS 13。更老的内核读不到这段，
+ * 会停在上面的浅色令牌上，这是可接受的降级，所以浅色必须独立成立。
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --ink-900: #f2f1f7;
+    --ink-700: #cdcbdb;
+    --ink-500: #9a98b0;
+    --ink-400: #75738c;
+    --ink-300: #514f66;
+
+    --surface: #101124;
+    --surface-raised: #191b33;
+    --surface-sunken: #0b0c1a;
+    --line: #2a2c47;
+
+    --accent: #8b96e0;
+    --accent-strong: #a3ace9;
+    --accent-soft: #1e2145;
+    --accent-ink: #101124;
+
+    --warm: #e0965f;
+    --warm-soft: #2a2013;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.5), 0 16px 40px -16px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* ============ 基础 ============ */
+
+body {
+  background: var(--surface);
+  color: var(--ink-900);
+  /* 国产系统的中文字体各不相同，按苹方、鸿蒙、小米兰亭、思源、雅黑依次回落 */
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "HarmonyOS Sans SC",
+    "MiSans", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei",
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* 中文长串和 URL 不撑破容器 */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+a,
+.option {
+  /* 国产内核默认的点击灰块很难看 */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* ============ 布局 ============ */
+
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  /* 横屏和挖孔屏下不被切掉 */
+  padding-left: calc(1.25rem + var(--safe-left));
+  padding-right: calc(1.25rem + var(--safe-right));
+}
+
+.stack > * + * {
+  margin-top: var(--stack-gap, 1rem);
+}
+
+.card {
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+}
+
+/*
+ * 横向排列。flex 的 gap 要 Chrome 84 / iOS 14.5，低于这个版本的内核
+ * 会把间距全部丢掉，元素挤成一团。所以默认用 margin，
+ * 支持 gap 的内核再切回 gap。
+ */
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.row > * + * {
+  margin-left: var(--row-gap, 0.5rem);
+}
+
+.row-baseline {
+  align-items: baseline;
+}
+
+.row-between {
+  justify-content: space-between;
+}
+
+.row-start {
+  align-items: flex-start;
+}
+
+/* 可换行的横向排列，用负外边距抵掉四周多余的间距 */
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  margin: calc(var(--wrap-gap, 0.5rem) / -2);
+}
+
+.wrap > * {
+  margin: calc(var(--wrap-gap, 0.5rem) / 2);
+}
+
+@supports (gap: 1px) {
+  .row {
+    gap: var(--row-gap, 0.5rem);
+  }
+
+  .row > * + * {
+    margin-left: 0;
+  }
+
+  .wrap {
+    margin: 0;
+    gap: var(--wrap-gap, 0.5rem);
+  }
+
+  .wrap > * {
+    margin: 0;
+  }
+}
+
+/* ============ 排版 ============ */
+
+.eyebrow {
+  font-size: var(--step--1);
+  letter-spacing: 0.12em;
+  color: var(--ink-400);
+}
+
+.h1 {
+  font-size: var(--step-4);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.h2 {
+  font-size: var(--step-2);
+  line-height: 1.4;
+  font-weight: 600;
+  margin: 0;
+}
+
+.h3 {
+  font-size: var(--step-1);
+  font-weight: 600;
+  margin: 0;
+}
+
+.muted {
+  color: var(--ink-500);
+}
+
+.small {
+  font-size: var(--step--1);
+  line-height: 1.7;
+}
+
+li::marker {
+  color: var(--ink-400);
+}
+
+li + li {
+  margin-top: var(--stack-gap, 0.375rem);
+}
+
+nav a,
+.small a {
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+/* ============ 按钮 ============ */
+
+.btn {
+  display: -webkit-inline-box;
+  display: inline-flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: var(--step-0);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: opacity 0.12s ease, background 0.12s ease;
+}
+
+.btn:active {
+  opacity: 0.86;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-block {
+  display: -webkit-box;
+  display: flex;
+  width: 100%;
+}
+
+.btn-ghost {
+  background: none;
+  border-color: var(--line);
+  color: var(--ink-700);
+}
+
+/* ============ 答题 ============ */
+
+.option {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  text-align: left;
+  font-size: var(--step-0);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.option[data-selected="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.option-dot {
+  -webkit-box-flex: 0;
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-right: 0.75rem;
+  border-radius: 999px;
+  border: 2px solid var(--ink-300);
+}
+
+.option[data-selected="true"] .option-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--surface-raised);
+}
+
+.progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+/* ============ 维度条 ============ */
+
+.bar {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+/* ============ 标签 ============ */
+
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--ink-700);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+/* ============ 付费墙 ============ */
+
+.paywall {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  padding: 1.25rem;
+}
+
+.price {
+  font-size: var(--step-4);
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.price-was {
+  color: var(--ink-400);
+  text-decoration: line-through;
+  font-size: var(--step-0);
+  font-weight: 400;
+}
+
+.notice {
+  border-left: 3px solid var(--warm);
+  background: var(--warm-soft);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--step--1);
+  line-height: 1.7;
+}
+
+.divider {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 1.5rem 0;
+}
+
+/* ============ 表单 ============ */
+
+.field {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-900);
+  /* iOS 在字号小于 16px 的输入框聚焦时会强制放大整个页面 */
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ============ FAQ ============ */
+
+/* 用原生 details，不执行 JS 的抓取器也能读到答案全文 */
+.faq-item {
+  padding: 1rem 1.25rem;
+}
+
+.faq-item > summary {
+  cursor: pointer;
+  list-style: none;
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: start;
+  align-items: flex-start;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+}
+
+.faq-item > summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item > summary::after {
+  content: "+";
+  margin-left: 0.75rem;
+  color: var(--ink-400);
+  font-weight: 400;
+  -webkit-box-flex: 0;
+  flex: none;
+}
+
+.faq-item[open] > summary::after {
+  content: "\2212";
+}
+
+/* ============ 底部安全区 ============ */
+
+.page-bottom {
+  padding-bottom: calc(3rem + var(--safe-bottom));
+}
+
+/* ============ 维度光谱 ============ */
+
+/*
+ * 布局用 grid。grid 的 gap 从 Chrome 66 起支持，不像 flex 的 gap 要 Chrome 84，
+ * 所以这里可以直接用，不需要 @supports 回退。
+ */
+.spectrum {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.spectrum-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.spectrum-end {
+  font-size: var(--step--1);
+  line-height: 1.3;
+  color: var(--ink-400);
+  white-space: nowrap;
+}
+
+.spectrum-end > b {
+  display: block;
+  font-size: var(--step-1);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.spectrum-end.is-hit {
+  color: var(--accent-strong);
+}
+
+.spectrum-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+}
+
+.spectrum-mid {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 50%;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--ink-300);
+  opacity: 0.6;
+}
+
+.spectrum-dot {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  margin-left: -9px;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 3px solid var(--surface-raised);
+  box-shadow: 0 1px 4px rgba(20, 22, 43, 0.25);
+}
+
+.spectrum-caption {
+  margin: 0.375rem 0 0;
+  font-size: var(--step--1);
+  color: var(--ink-400);
+}
+
+.spectrum-note {
+  margin: 0.25rem 0 0;
+  font-size: var(--step--1);
+  line-height: 1.65;
+  color: var(--ink-500);
+}
+
+/* ============ 类型矩阵 ============ */
+
+.type-grid-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.type-grid {
+  display: grid;
+  grid-template-columns: auto repeat(4, 1fr);
+  gap: 6px;
+  min-width: 300px;
+}
+
+.type-grid-corner {
+  display: block;
+}
+
+.type-grid-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-400);
+}
+
+.type-cell {
+  display: block;
+  padding: 0.5rem 0.25rem 0.625rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.type-cell > .mark {
+  margin: 0 auto 0.375rem;
+}
+
+.type-cell > b {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+}
+
+.type-cell > span {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--ink-500);
+}
+
+.type-cell.is-empty {
+  border-style: dashed;
+  background: none;
+}
+
+/* ============ 带图标的小标题 ============ */
+
+.section-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.625rem;
+}
+
+.section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.section-hint {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--ink-400);
+}
+
+/* ============ 首屏速览 ============ */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.fact {
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  text-align: center;
+  color: var(--ink-700);
+}
+
+.fact > svg {
+  margin: 0 auto 0.25rem;
+  color: var(--accent-strong);
+}
+
+.fact > b {
+  display: block;
+  font-size: var(--step-1);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.fact > span {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--step--1);
+  color: var(--ink-400);
+}
+
+/* ============ 对比双栏 ============ */
+
+.versus {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.versus-col {
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.versus-col.is-good {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.versus-col.is-bad {
+  background: var(--warm-soft);
+  border-color: var(--warm);
+}
+
+.versus-col > h3 {
+  margin: 0 0 0.5rem;
+  font-size: var(--step-1);
+  font-weight: 600;
+}
+
+.versus-col ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: var(--step--1);
+  line-height: 1.7;
+}
+
+/* ============ 编号列表 ============ */
+
+.numbered {
+  display: grid;
+  gap: 0.75rem;
+  counter-reset: n;
+}
+
+.numbered > li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.75rem;
+  margin: 0;
+  list-style: none;
+  counter-increment: n;
+}
+
+.numbered > li::before {
+  content: counter(n);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--step--1);
+  font-weight: 700;
+}
+
+.numbered {
+  padding-left: 0;
+}
+
+/* 一行一个类型：指纹 + 类型码 + 一句话 */
+.type-line {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  text-decoration: none;
+  color: inherit;
+}
+
+.type-line > b {
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+}
+
+.type-line > span {
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--ink-500);
+}
+
+/* ============ 答题的量表视觉 ============ */
+
+/*
+ * 答题界面。
+ *
+ * 只保留进度、题干、选项三样。切题走 CSS 动画：当前题淡出左移，
+ * 下一题从右侧淡入。用 transform 和 opacity，这两个属性走合成层，
+ * 在国产内核的中低端机上也不会掉帧。
+ */
+
+.quiz {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.quiz-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.quiz-index {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--ink-400);
+  font-variant-numeric: tabular-nums;
+}
+
+.quiz-index b {
+  font-size: var(--step-0);
+  font-weight: 700;
+  color: var(--ink-700);
+}
+
+/* 题干区固定高度，长短不一的题目不会把选项顶得上下跳 */
+.quiz-stage {
+  position: relative;
+}
+
+.quiz-question {
+  margin: 0 0 1.25rem;
+  /* 正好两行的高度。题干上限 30 字，在 375px 宽下就是两行，
+     单行题也占同样的位置，选项因此不会上下挪 */
+  min-height: 3.75rem;
+  font-size: var(--step-2);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.quiz-foot {
+  display: grid;
+  grid-template-columns: auto;
+  justify-content: center;
+  min-height: 1.5rem;
+}
+
+.quiz-back,
+.quiz-status {
+  font-size: var(--step--1);
+  color: var(--ink-400);
+}
+
+.quiz-back {
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+}
+
+/* ---- 切题动画 ---- */
+
+.quiz-card {
+  animation: quiz-enter 240ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.quiz-card[data-dir="back"] {
+  animation-name: quiz-enter-back;
+}
+
+@keyframes quiz-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes quiz-enter-back {
+  from {
+    opacity: 0;
+    transform: translate3d(-18px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 选中的那一刻给一点回弹，让「已经选上了」这件事被看见 */
+.option[data-selected="true"] {
+  animation: option-pick 180ms ease-out;
+}
+
+@keyframes option-pick {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(0.975);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 关掉动画偏好的用户直接切，不做任何位移 */
+@media (prefers-reduced-motion: reduce) {
+  .quiz-card,
+  .option[data-selected="true"] {
+    animation: none;
+  }
+
+  .progress > span {
+    transition: none;
+  }
+}
+
+/*
+ * 五级量表用圆点大小和边框深浅表达强度，用户不用逐字读就知道
+ * 从上到下是从很符合到很不符合。选中态仍然靠背景和边框，不只靠颜色。
+ */
+.option[data-weight="2"] .option-dot {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-color: var(--accent);
+}
+
+.option[data-weight="1"] .option-dot {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-color: var(--ink-300);
+}
+
+.option[data-weight="0"] .option-dot {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-width: 1.5px;
+}
+
+.option[data-weight="-1"] .option-dot {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-color: var(--ink-300);
+}
+
+.option[data-weight="-2"] .option-dot {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-color: var(--warm);
+}
+
+.option[data-weight="-2"][data-selected="true"],
+.option[data-weight="-1"][data-selected="true"] {
+  border-color: var(--warm);
+  background: var(--warm-soft);
+}
+
+.option[data-weight="-2"][data-selected="true"] .option-dot,
+.option[data-weight="-1"][data-selected="true"] .option-dot {
+  border-color: var(--warm);
+  background: var(--warm);
+}
+
+/*
+ * 没有得分点的轴容易被读成「还没加载完的进度条」。
+ * 两端各加一点颜色，明确它是一条两极之间的刻度。
+ *
+ * 两端必须同色。站内橙色代表「消耗」，如果一端用橙色，
+ * 会暗示那一极更差，而这四条轴的两极没有好坏之分。
+ */
+.spectrum-track.is-axis {
+  background: var(--surface-sunken);
+  background-image: linear-gradient(
+    to right,
+    var(--accent-soft) 0%,
+    var(--surface-sunken) 30%,
+    var(--surface-sunken) 70%,
+    var(--accent-soft) 100%
+  );
+}
+
+/* ============ 海报式头图 ============ */
+
+/*
+ * 结果页和类型页的头图。图占满卡片上半部，文字在下半部做层次。
+ * 底色来自类型自己的色板，不跟随主题令牌：这张卡会被截图外发，
+ * 深浅色模式下必须长得一样。
+ */
+.poster {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--poster-bg, #f3f2ef);
+  box-shadow: var(--shadow-lift);
+}
+
+.poster-art {
+  display: block;
+  width: 100%;
+}
+
+.poster-body {
+  padding: 1.5rem 1.375rem 1.625rem;
+  color: var(--poster-ink, #2b2b33);
+}
+
+/* 顶部小字：拉开字距，做成标签感，和下面的大字形成对比 */
+.poster-eyebrow {
+  margin: 0 0 0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  opacity: 0.6;
+}
+
+/* 类型码：整张卡的主角。字距收紧，行高压到接近字身 */
+.poster-code {
+  margin: 0;
+  font-size: 3.75rem;
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+}
+
+.poster-name {
+  margin: 0.5rem 0 0;
+  font-size: var(--step-2);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 一条短线，把标题区和描述隔开 */
+.poster-rule {
+  width: 2.25rem;
+  height: 2px;
+  margin: 1rem 0;
+  border: 0;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.poster-label {
+  margin: 0;
+  font-size: var(--step-1);
+  line-height: 1.6;
+  opacity: 0.82;
+}
+
+.poster-chips {
+  margin-top: 1.125rem;
+}
+
+.poster-chips .chip {
+  background: rgba(255, 255, 255, 0.55);
+  color: inherit;
+  font-weight: 500;
+}
+
+/* 窄屏把类型码收一档，避免四个字母换行 */
+@media (max-width: 359px) {
+  .poster-code {
+    font-size: 3rem;
+  }
+}
+
+/* ============ 落地页封面 ============ */
+
+.cover {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #f4f2ee;
+  box-shadow: var(--shadow-card);
+}
+
+.cover-art {
+  display: block;
+  width: 100%;
+}
+
+.cover-body {
+  padding: 1.375rem 1.375rem 1.5rem;
+  color: #2f2e33;
+}
+
+.cover-title {
+  margin: 0;
+  font-size: 2.125rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.cover-tagline {
+  margin: 0;
+  font-size: var(--step-1);
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
+/* 矩阵和列表里的小幅主视觉 */
+.cell-art {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.type-cell > .cell-art {
+  margin: 0 auto 0.375rem;
+}
+
+/* ============ 缩略预览 ============ */
+
+/*
+ * 未付费时正文只给开头一段，底部渐隐。
+ * 渐隐是视觉效果，不是遮挡：被隐藏的正文根本没有进入 HTML，
+ * 服务端就已经截断了，前端不做隐藏式伪装。
+ */
+.locked {
+  position: relative;
+}
+
+.locked-text {
+  margin: 0;
+  max-height: 7.5rem;
+  overflow: hidden;
+}
+
+.locked-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4.5rem;
+  pointer-events: none;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(251, 250, 247, 0),
+    var(--surface) 92%
+  );
+}
+
+.card .locked-fade {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    var(--surface-raised) 92%
+  );
+}
+
+.locked-more {
+  margin: 0.625rem 0 0;
+  font-size: var(--step--1);
+  color: var(--ink-400);
+}
+
+/* ============ 付款界面 ============ */
+
+.checkout {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--accent);
+  background: var(--surface-raised);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.checkout-head {
+  padding: 1.25rem 1.25rem 1rem;
+  background: var(--accent-soft);
+}
+
+.checkout-title {
+  margin: 0;
+  font-size: var(--step-2);
+  font-weight: 650;
+}
+
+.checkout-sub {
+  margin: 0.375rem 0 0;
+  font-size: var(--step--1);
+  color: var(--ink-500);
+}
+
+.checkout-body {
+  padding: 1.125rem 1.25rem 1.375rem;
+}
+
+/* 锁定清单：只给标题和钩子，不泄漏正文 */
+.locked-list {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.locked-list > li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.locked-list svg {
+  margin-top: 2px;
+  color: var(--accent-strong);
+  opacity: 0.75;
+}
+
+.locked-list b {
+  display: block;
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.locked-list span {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--step--1);
+  line-height: 1.55;
+  color: var(--ink-500);
+}
+
+/* 价格区 */
+.price-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+
+.price-now {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent-strong);
+}
+
+.price-now small {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-right: 1px;
+}
+
+.price-off {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: var(--warm);
+  color: #fff;
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 倒计时 */
+.countdown {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-sm);
+  background: var(--warm-soft);
+  color: var(--warm);
+  font-size: var(--step--1);
+}
+
+.countdown b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* 裂变入口 */
+.fission {
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--accent);
+  background: var(--accent-soft);
+}
+
+.fission-title {
+  margin: 0 0 0.25rem;
+  font-size: var(--step-0);
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+
+.fission-hint {
+  margin: 0 0 0.75rem;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--ink-500);
+}

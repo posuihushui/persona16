@@ -1,0 +1,48 @@
+{
+  "slug": "persona16",
+  "version": "1.0.0",
+  "mode": "dichotomy",
+  "codeOrder": ["EI", "SN", "TF", "JP"],
+  "dimensions": [
+    {
+      "id": "EI",
+      "name": "精力从哪来",
+      "positivePole": "E",
+      "tieBreak": "I",
+      "poles": {
+        "E": { "name": "外向", "summary": "和人互动会给你充电，想法在说出口的过程中才变清楚。" },
+        "I": { "name": "内向", "summary": "独处会给你充电，想法在心里过一遍才敢拿出来。" }
+      }
+    },
+    {
+      "id": "SN",
+      "name": "信息怎么接",
+      "positivePole": "S",
+      "tieBreak": "N",
+      "poles": {
+        "S": { "name": "实感", "summary": "你从具体、可验证的事实入手，先站稳再往前走。" },
+        "N": { "name": "直觉", "summary": "你从整体和可能性入手，先看见方向再补细节。" }
+      }
+    },
+    {
+      "id": "TF",
+      "name": "判断靠什么",
+      "positivePole": "T",
+      "tieBreak": "F",
+      "poles": {
+        "T": { "name": "思考", "summary": "你先问这件事成不成立，把标准放在事情本身。" },
+        "F": { "name": "情感", "summary": "你先问这件事对人意味着什么，把标准放在关系和价值上。" }
+      }
+    },
+    {
+      "id": "JP",
+      "name": "节奏怎么定",
+      "positivePole": "J",
+      "tieBreak": "P",
+      "poles": {
+        "J": { "name": "判断", "summary": "你需要事情落定才安心，喜欢提前把路铺好。" },
+        "P": { "name": "感知", "summary": "你需要余地才自在，喜欢边走边调整。" }
+      }
+    }
+  ]
+}

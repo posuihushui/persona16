@@ -1,0 +1,67 @@
+{
+  "slug": "persona16",
+  "version": "1.0.0",
+  "scale": {
+    "id": "agree5",
+    "options": [
+      { "value": 2, "label": "很符合" },
+      { "value": 1, "label": "有点符合" },
+      { "value": 0, "label": "说不好" },
+      { "value": -1, "label": "不太符合" },
+      { "value": -2, "label": "很不符合" }
+    ]
+  },
+  "questions": [
+    { "id": "q01", "text": "一整天没跟人说过话，我心里会有点空。", "dimension": "EI", "pole": "E", "weight": 1 },
+    { "id": "q02", "text": "想不明白的事，我说出来比自己憋着想得更清楚。", "dimension": "EI", "pole": "E", "weight": 1 },
+    { "id": "q03", "text": "到了热闹的场合，我很快能进入状态。", "dimension": "EI", "pole": "E", "weight": 1 },
+    { "id": "q04", "text": "周末连着两天没安排，我会主动约人。", "dimension": "EI", "pole": "E", "weight": 1 },
+    { "id": "q05", "text": "开会讨论时，我常常是先开口的那个。", "dimension": "EI", "pole": "E", "weight": 1 },
+    { "id": "q06", "text": "认识新朋友这件事本身就让我来劲。", "dimension": "EI", "pole": "E", "weight": 1 },
+    { "id": "q07", "text": "聚会结束回到家，我要独处一会儿才缓过来。", "dimension": "EI", "pole": "I", "weight": 1 },
+    { "id": "q08", "text": "比起当场回应，我更想回去想清楚再说。", "dimension": "EI", "pole": "I", "weight": 1 },
+    { "id": "q09", "text": "我更喜欢和一两个人深聊，胜过一群人闲聊。", "dimension": "EI", "pole": "I", "weight": 1 },
+    { "id": "q10", "text": "连轴见人一整天之后，我会明显耗电。", "dimension": "EI", "pole": "I", "weight": 1 },
+    { "id": "q11", "text": "陌生人多的场合，我倾向先在旁边观察一阵。", "dimension": "EI", "pole": "I", "weight": 1 },
+    { "id": "q12", "text": "很多话我在心里说完了，就不打算说出口。", "dimension": "EI", "pole": "I", "weight": 1 },
+
+    { "id": "q13", "text": "我更信亲眼看到的，胜过听起来合理的推论。", "dimension": "SN", "pole": "S", "weight": 1 },
+    { "id": "q14", "text": "学新东西时，我需要先知道它具体怎么用。", "dimension": "SN", "pole": "S", "weight": 1 },
+    { "id": "q15", "text": "讲一件事，我习惯从头到尾按顺序说。", "dimension": "SN", "pole": "S", "weight": 1 },
+    { "id": "q16", "text": "回忆一件事，我最先想起的是具体画面。", "dimension": "SN", "pole": "S", "weight": 1 },
+    { "id": "q17", "text": "要执行一个计划，我会先问清楚每一步做什么。", "dimension": "SN", "pole": "S", "weight": 1 },
+    { "id": "q18", "text": "比起讲大方向，我更想要一份明确的步骤说明。", "dimension": "SN", "pole": "S", "weight": 1 },
+    { "id": "q19", "text": "听到一个新想法，我很快会联想到别的领域。", "dimension": "SN", "pole": "N", "weight": 1 },
+    { "id": "q20", "text": "我常常先抓到整体感觉，细节以后再补。", "dimension": "SN", "pole": "N", "weight": 1 },
+    { "id": "q21", "text": "我对「还能怎么做」比「现在怎么做」更感兴趣。", "dimension": "SN", "pole": "N", "weight": 1 },
+    { "id": "q22", "text": "我说着说着容易跑题，因为一句话勾出另一件事。", "dimension": "SN", "pole": "N", "weight": 1 },
+    { "id": "q23", "text": "同一件事重复做久了，我的注意力容易飘走。", "dimension": "SN", "pole": "N", "weight": 1 },
+    { "id": "q24", "text": "我喜欢琢磨一件事背后的规律和模式。", "dimension": "SN", "pole": "N", "weight": 1 },
+
+    { "id": "q25", "text": "争论的时候，我更在意谁的逻辑站得住。", "dimension": "TF", "pole": "T", "weight": 1 },
+    { "id": "q26", "text": "朋友向我诉苦，我很快就开始想解决办法。", "dimension": "TF", "pole": "T", "weight": 1 },
+    { "id": "q27", "text": "做决定时，我会把利弊列出来再选。", "dimension": "TF", "pole": "T", "weight": 1 },
+    { "id": "q28", "text": "为了把事情说清楚，我能接受话说得直一点。", "dimension": "TF", "pole": "T", "weight": 1 },
+    { "id": "q29", "text": "评价一个方案，我先看它成不成立。", "dimension": "TF", "pole": "T", "weight": 1 },
+    { "id": "q30", "text": "别人情绪上头时，我比较容易停在事情本身。", "dimension": "TF", "pole": "T", "weight": 1 },
+    { "id": "q31", "text": "做决定前，我会先想这事对相关的人意味着什么。", "dimension": "TF", "pole": "F", "weight": 1 },
+    { "id": "q32", "text": "屋里有人不太舒服，我通常很早就察觉到。", "dimension": "TF", "pole": "F", "weight": 1 },
+    { "id": "q33", "text": "我宁可把话绕一点说，也不想戳到对方。", "dimension": "TF", "pole": "F", "weight": 1 },
+    { "id": "q34", "text": "一件事道理上对，但感觉不对，我会犹豫。", "dimension": "TF", "pole": "F", "weight": 1 },
+    { "id": "q35", "text": "身边人的情绪会实实在在影响到我。", "dimension": "TF", "pole": "F", "weight": 1 },
+    { "id": "q36", "text": "被认可这件事，对我是实打实的动力。", "dimension": "TF", "pole": "F", "weight": 1 },
+
+    { "id": "q37", "text": "事情定下来我才安心，一直悬着会不舒服。", "dimension": "JP", "pole": "J", "weight": 1 },
+    { "id": "q38", "text": "出门前，我习惯把行程大致排一遍。", "dimension": "JP", "pole": "J", "weight": 1 },
+    { "id": "q39", "text": "任务我倾向提前做完，不喜欢卡着点交。", "dimension": "JP", "pole": "J", "weight": 1 },
+    { "id": "q40", "text": "把待办一条条划掉的时候，我会很满足。", "dimension": "JP", "pole": "J", "weight": 1 },
+    { "id": "q41", "text": "计划被临时改动，我需要点时间重新调整。", "dimension": "JP", "pole": "J", "weight": 1 },
+    { "id": "q42", "text": "开始做事前，我习惯先把桌面收成想要的样子。", "dimension": "JP", "pole": "J", "weight": 1 },
+    { "id": "q43", "text": "安排太满的计划会让我喘不过气。", "dimension": "JP", "pole": "P", "weight": 1 },
+    { "id": "q44", "text": "临近截止的时候，我的效率反而最高。", "dimension": "JP", "pole": "P", "weight": 1 },
+    { "id": "q45", "text": "我喜欢给自己留改主意的余地。", "dimension": "JP", "pole": "P", "weight": 1 },
+    { "id": "q46", "text": "出去玩，我更想到了当地再决定去哪。", "dimension": "JP", "pole": "P", "weight": 1 },
+    { "id": "q47", "text": "同时开着好几件事，我反而更有劲。", "dimension": "JP", "pole": "P", "weight": 1 },
+    { "id": "q48", "text": "计划赶不上变化时，我的第一反应是顺势调整。", "dimension": "JP", "pole": "P", "weight": 1 }
+  ]
+}

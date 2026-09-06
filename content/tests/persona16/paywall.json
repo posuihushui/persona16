@@ -1,0 +1,96 @@
+{
+  "slug": "persona16",
+  "free": [
+    "name",
+    "label",
+    "keywords"
+  ],
+  "teaser": {
+    "field": "core",
+    "chars": 62
+  },
+  "paid": [
+    "core",
+    "atBest",
+    "atWorst",
+    "cognition",
+    "strengths",
+    "blindSpots",
+    "career",
+    "relationship",
+    "withOthers",
+    "growth"
+  ],
+  "price": {
+    "amount": 990,
+    "originalAmount": 1990,
+    "currency": "CNY"
+  },
+  "discount": {
+    "percent": 60,
+    "windowHours": 24,
+    "trigger": "share"
+  },
+  "productName": "16型人格深度报告",
+  "locked": [
+    {
+      "key": "core",
+      "title": "完整的性格描述",
+      "hint": "你为什么会是这样，写满一整页"
+    },
+    {
+      "key": "atBest",
+      "title": "你最舒服的状态",
+      "hint": "什么条件下你的产出远超投入"
+    },
+    {
+      "key": "atWorst",
+      "title": "你最容易累的状态",
+      "hint": "什么在持续消耗你，以及为什么"
+    },
+    {
+      "key": "cognition",
+      "title": "认知偏好拆解",
+      "hint": "四种偏好怎么组合成你的处理方式"
+    },
+    {
+      "key": "strengths",
+      "title": "五条真实优势",
+      "hint": "不是夸你，是你确实比多数人强的地方"
+    },
+    {
+      "key": "blindSpots",
+      "title": "五个盲点与对应动作",
+      "hint": "每条配一个这周就能做的具体动作"
+    },
+    {
+      "key": "career",
+      "title": "工作环境匹配",
+      "hint": "什么环境让你回血，什么让你持续消耗"
+    },
+    {
+      "key": "relationship",
+      "title": "亲密关系与常见摩擦",
+      "hint": "你在关系里的样子，和最容易反复出现的那类问题"
+    },
+    {
+      "key": "withOthers",
+      "title": "和其他类型相处",
+      "hint": "四个高频类型的具体相处提示"
+    },
+    {
+      "key": "growth",
+      "title": "三条成长建议",
+      "hint": "针对你这个类型，不是通用鸡汤"
+    }
+  ],
+  "promise": [
+    "你这个类型的四种认知偏好是怎么组合的，为什么你会习惯这样处理事情",
+    "五条真实优势，以及五个盲点，每个盲点配一个这周就能做的具体动作",
+    "什么样的工作环境让你回血，什么样的会让你持续消耗，适合切入的岗位方向",
+    "你在亲密关系里的表现，以及最容易反复出现的那类摩擦",
+    "和几种典型类型相处时的具体提示",
+    "三条针对你这个类型的成长建议"
+  ],
+  "refundNote": "深度报告属于一次性交付的数字内容，解锁后即可完整查看，因此不支持无理由退款。如果内容与本页承诺不符，可在 7 天内联系客服申请全额退款。"
+}

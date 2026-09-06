@@ -1,0 +1,201 @@
+// Persona16 数据模型
+// 约定见 agents.md 的「数据与权限约定」。
+// 匿名优先：完成测试不需要注册，sessionKey 是浏览器级标识；
+// openId 只在支付和跨设备找回时通过微信网页授权获取。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+/// 一次作答。answers 和 packVersion 一起保证结果可复现。
+model Attempt {
+  id String @id @default(cuid())
+
+  /// 匿名浏览器标识，HttpOnly Cookie
+  sessionKey String
+  /// 微信身份，付费或跨设备找回时绑定
+  openId String?
+
+  /// 内容包 slug 与发布时的版本号，历史结果永远按这个版本渲染
+  slug        String
+  packVersion String
+
+  /// 题目 id 到作答分值的映射
+  answers Json
+  /// 计分得到的类型码
+  code String
+  /// 各维度得分明细，结果页直接渲染，不重算
+  dimensions Json
+
+  /// 来源渠道，用于分析传播路径
+  source String?
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  orders    Order[]
+  discounts Discount[]
+
+  @@index([sessionKey])
+  @@index([openId])
+  @@index([slug, code])
+  @@index([createdAt])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CLOSED
+  REFUNDED
+}
+
+/// 一次付费。权益粒度是「某个 Attempt 的深度报告」，不是账号级订阅。
+model Order {
+  id String @id @default(cuid())
+
+  attemptId String
+  attempt   Attempt @relation(fields: [attemptId], references: [id])
+
+  sessionKey String
+  openId     String?
+
+  /// 支付方式标识，对应 src/lib/pay/ 下的 provider
+  provider String
+  /// 支付平台侧的交易号，回调时用于对账
+  providerTradeNo String?
+
+  /// 单位分
+  amount   Int
+  currency String @default("CNY")
+
+  status OrderStatus @default(PENDING)
+  paidAt DateTime?
+
+  /// 下单时命中的折扣券。价格已经落在 amount 上，这里只用于对账和核销
+  discountId String?
+
+  /// 用户可见的找回码，换设备后凭它找回报告
+  retrieveCode String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events  PaymentEvent[]
+  refunds Refund[]
+
+  @@index([sessionKey])
+  @@index([openId])
+  @@index([attemptId])
+  @@index([status])
+}
+
+/// 支付回调事件。eventId 唯一，用来做回调幂等。
+model PaymentEvent {
+  id String @id @default(cuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  provider String
+  /// 支付平台的事件唯一标识，重复回调靠它挡住
+  eventId String
+
+  payload Json
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([orderId])
+}
+
+/// 埋点。只记录行为，不记录作答明细。
+model AnalyticsEvent {
+  id String @id @default(cuid())
+
+  sessionKey String
+  name       String
+  slug       String?
+  attemptId  String?
+  props      Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([sessionKey])
+}
+
+enum RefundStatus {
+  PROCESSING
+  SUCCESS
+  CLOSED
+  ABNORMAL
+}
+
+/// 退款。用户协议承诺内容与付费页承诺不符可在 7 天内申请全额退款。
+/// out_refund_no 用 id，唯一约束保证同一笔不会重复退。
+model Refund {
+  id String @id @default(cuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  provider String
+  /// 支付平台侧的退款单号
+  providerRefundId String?
+
+  /// 单位分
+  amount Int
+  reason String
+
+  status RefundStatus @default(PROCESSING)
+
+  /// 操作人标识，人工退款时记录是谁发起的
+  operator String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([status])
+}
+
+enum DiscountKind {
+  /// 用户主动分享后领取
+  SHARE
+  /// 纯限时促销，不绑定任何行为
+  TIMED
+}
+
+/// 折扣券。价格一律在服务端计算，客户端只拿到最终金额，不参与定价。
+model Discount {
+  id String @id @default(cuid())
+
+  attemptId String
+  attempt   Attempt @relation(fields: [attemptId], references: [id])
+
+  /// 领取人。折扣绑定到领取时的浏览器会话，换人不能用
+  sessionKey String
+  openId     String?
+
+  kind DiscountKind
+
+  /// 折后按原价的百分之多少收，60 表示六折
+  percent Int
+
+  expiresAt DateTime
+
+  /// 已核销到哪张订单。有值即不能再用
+  usedByOrderId String?  @unique
+  usedAt        DateTime?
+
+  createdAt DateTime @default(now())
+
+  /// 一次作答同一个会话只给一张，防止反复领取刷新有效期
+  @@unique([attemptId, sessionKey])
+  @@index([expiresAt])
+}
