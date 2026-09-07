@@ -1,15 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SceneIllustration } from "@/components/SceneIllustration";
 import { restoreProgress } from "@/lib/quiz-progress";
 import type { Question, ScaleOption } from "@/lib/types";
 import ui from "../../content/ui.json";
 
-type Props = { slug: string; version: string; questions: Question[]; options: ScaleOption[] };
+type Props = {
+  slug: string;
+  version: string;
+  questions: Question[];
+  options: ScaleOption[];
+  /** 分组提示里的情境插画，来自 content/illustrations.json 的场景名。不传就只显示文字 */
+  scene?: string;
+  /** 维度顺序与名字，来自内容包的 scoring.dimensions。组件不认识任何具体量表 */
+  groups?: { id: string; name: string }[];
+};
+
 const useBeforePaint = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-export function Quiz({ slug, version, questions, options }: Props) {
+/** 文案兜底：content/ui.json 里配了就用配置，没配用这里的默认值。 */
+const copy = (key: string, fallback: string) =>
+  (ui.quiz as unknown as Record<string, string>)[key] ?? fallback;
+
+export function Quiz({ slug, version, questions, options, scene, groups = [] }: Props) {
   const router = useRouter();
   const storageKey = useMemo(() => `p16:progress:${slug}`, [slug]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -142,8 +158,58 @@ export function Quiz({ slug, version, questions, options }: Props) {
   const complete = answered === questions.length;
   const percent = Math.round(answered / questions.length * 100);
 
+  /*
+   * 分组。48 道题连着做，用户看不到尽头也不知道在问什么方向。
+   * 分组来自内容包的维度顺序，组件不认识任何一款具体量表；
+   * 没传 groups 时按题号四等分兜底，「第几组 / 共几组」照样成立。
+   */
+  const groupCount = groups.length || 4;
+  const perGroup = Math.ceil(questions.length / groupCount);
+  const byDimension = groups.findIndex((g) => g.id === question.dimension);
+  const groupIndex =
+    byDimension >= 0 ? byDimension : Math.min(groupCount - 1, Math.floor(index / perGroup));
+  const groupName = groups[groupIndex]?.name;
+
   return (
     <div className="quiz" aria-busy={submitting}>
+      {/*
+        头部承担进度：返回、第几题、退出，下沿一条进度轨。
+        答题页不复用 SiteHeader —— 这里的中间不是页面名而是进度，
+        右侧不是次要入口而是退出，两者职责不同，合并会把两个页面都拖累。
+      */}
+      <div className="quiz-topbar">
+        <div className="quiz-topbar-row">
+          <div className="quiz-topbar-slot">
+            {index > 0 && !submitting && (
+              <button type="button" className="quiz-topbar-back" onClick={goBack} aria-label="上一题">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M14.5 5L8 12l6.5 7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <p className="quiz-topbar-title">
+            第 <b>{index + 1}</b> / {questions.length} 题
+          </p>
+          <div className="quiz-topbar-slot quiz-topbar-slot--end">
+            <Link href={`/t/${slug}`} className="quiz-topbar-exit">
+              {copy("exit", "退出")}
+            </Link>
+          </div>
+        </div>
+        <div
+          className="quiz-progress-rail"
+          role="progressbar"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="答题进度"
+          aria-valuetext={`${answered} / ${questions.length}`}
+        >
+          <span style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+
       {resume && <section className="quiz-resume">
         <h2 className="h3">{ui.quiz.resumeTitle}</h2>
         <p className="small">{ui.quiz.resumeHint.replace("{count}", String(answered)).replace("{total}", String(questions.length))}</p>
@@ -155,12 +221,16 @@ export function Quiz({ slug, version, questions, options }: Props) {
       </section>}
       {progressNotice && <p className="quiz-save-warning" role="status">{progressNotice}</p>}
       {storageWarning && <p className="quiz-save-warning" role="status">{ui.quiz.storageWarning}</p>}
-      <div className="quiz-head">
-        <div className="progress" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label="答题进度" aria-valuetext={`${answered} / ${questions.length}`}>
-          <span style={{ width: `${percent}%` }} />
-        </div>
-        <p className="quiz-index"><b>{index + 1}</b><span> / {questions.length}</span></p>
+
+      {/* 现在在问哪一方面。定位信息，不是装饰，所以每题都在 */}
+      <div className="quiz-group" data-art={scene ? "true" : undefined}>
+        {scene && <SceneIllustration scene={scene} className="quiz-group-art" />}
+        <p>
+          第 {groupIndex + 1} / {groupCount} 组{groupName ? ` · ${groupName}` : ""}。
+          {copy("groupHint", "跟着日常的自己选，没有标准答案。")}
+        </p>
       </div>
+
       <div className="quiz-stage">
         <div key={index} className="quiz-card" data-dir={dir}>
           <h1 ref={headingRef} className="quiz-question" tabIndex={-1} id="quiz-question">{question.text}</h1>
@@ -173,11 +243,26 @@ export function Quiz({ slug, version, questions, options }: Props) {
           </div>
         </div>
       </div>
+
+      {/*
+        自动保存本来就在做（quiz-progress.ts 落 localStorage），
+        但用户不知道，于是中途离开会心虚。这里只是把已有行为说出来。
+        存储被禁时不说这句话，上面的 storageWarning 会接手。
+      */}
+      <div className="quiz-autosave">
+        <span>{storageWarning ? "" : copy("autoSaved", "进度已自动保存")}</span>
+        <span className="quiz-group-dots" aria-hidden="true">
+          {Array.from({ length: groupCount }, (_, i) => (
+            <span key={i} data-done={i < groupIndex ? "true" : undefined} />
+          ))}
+        </span>
+      </div>
+
       <div className="quiz-foot">
-        {index > 0 && !submitting && <button type="button" className="quiz-back" onClick={goBack}>上一题</button>}
         {submitting && <span className="quiz-status" role="status">{ui.quiz.submitting}</span>}
         {index === 0 && !submitting && <span className="quiz-status">{ui.quiz.firstHint}</span>}
       </div>
+
       {(error || (complete && !submitting)) && <div className="quiz-error" role={error ? "alert" : "status"}>
         <p>{error || ui.quiz.completed}</p>
         {versionError ? <button type="button" className="btn btn-block" onClick={() => window.location.reload()}>刷新题库</button>

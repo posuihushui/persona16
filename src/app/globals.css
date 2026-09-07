@@ -82,9 +82,9 @@ table {
   color-scheme: light;
 
   --ink-900: #14162b;
-  --ink-700: #33365a;
-  --ink-500: #5d6183;
-  --ink-400: #8a8ea9;
+  --ink-700: #3a3850;
+  --ink-500: #63617a;
+  --ink-400: #8b8898; /* 只留给大字与装饰，12–13px 一律改用 --ink-500 */
   --ink-300: #b9bccd;
 
   --surface: #fbfaf7;
@@ -93,7 +93,7 @@ table {
   --line: #e5e3dc;
 
   --accent: #5b6abf;
-  --accent-strong: #46539c;
+  --accent-strong: #3a4585;
   --accent-soft: #eceefa;
   --accent-ink: #ffffff;
 
@@ -1694,24 +1694,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   line-height: 1.65;
 }
 
-.quiz-page-heading {
-  display: grid;
-  grid-template-columns: 3rem minmax(0, 1fr);
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.quiz-heading-art {
-  border-radius: var(--radius-sm);
-}
-
-.quiz-page-heading p {
-  font-size: var(--step--1);
-  line-height: 1.6;
-  color: var(--ink-500);
-}
-
 @media (min-width: 640px) {
   .illustrated-page--home,
   .illustrated-page--intro {
@@ -1827,13 +1809,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 }
 
-/* 答题时优先保留题干、选项与返回入口，情境图不挤占短屏。 */
-@media (max-height: 680px) {
-  .quiz-page-heading {
-    display: none;
-  }
-}
-
 @media (max-width: 639px) and (max-height: 620px) {
   .illustrated-page {
     padding-top: calc(0.875rem + var(--safe-top));
@@ -1841,5 +1816,577 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 
   .scene-hero-art {
     width: 8rem;
+  }
+}
+
+
+/* ============ 界面优化：头尾、拆解图、海报与答题页 ============ */
+/*
+ * 来自 2026-09-07 的界面优化提案（design_handoff_mbti_ui）。
+ * 只覆盖既有类并新增头尾与拆解图，追加在文件末尾，不删上面的规则。
+ * 令牌改动已直接写进 :root，这里不再重复。
+ */
+/* ============ 2. 吸顶头部 ============ */
+
+/*
+ * 三槽栅格：左右各 56px 固定，标题占中间。
+ * 这样标题永远在视觉中线上，不会因为右侧文案长短而偏移。
+ * position: sticky 在 X5 与 UC 老内核上会退化成 static，
+ * 这是可接受的降级：头部仍然在页面最上方，只是不再跟随滚动。
+ */
+.site-header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(3.5rem, auto) minmax(0, 1fr) minmax(3.5rem, auto);
+  align-items: center;
+  height: 3rem;
+  padding: 0 0.5rem;
+  padding-top: var(--safe-top);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header-slot {
+  display: flex;
+  align-items: center;
+}
+
+.site-header-slot--end {
+  justify-content: flex-end;
+}
+
+/* 44px 是最小可点面积，图标本身只有 20px */
+.site-header-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  color: var(--ink-700);
+}
+
+.site-header-title {
+  margin: 0;
+  text-align: center;
+  font-size: var(--step-0);
+  font-weight: 600;
+  color: var(--ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-header-action {
+  display: flex;
+  align-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.5rem 0 0.25rem;
+  font-size: var(--step--1);
+  line-height: 1.2;
+  color: var(--accent-strong);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* 标志与字标 */
+.brand-word {
+  font-size: var(--step--1);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-700);
+}
+
+.brand-word > span {
+  color: var(--accent-strong);
+}
+
+/* ============ 3. 全站底部 ============ */
+
+.site-footer {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  padding: 1.5rem 1.25rem 2rem;
+  padding-left: calc(1.25rem + var(--safe-left));
+  padding-right: calc(1.25rem + var(--safe-right));
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--line);
+}
+
+/* 页面本身有左右内边距时，底部要反向撑满整宽 */
+.page > .site-footer,
+.stack > .site-footer {
+  margin-left: calc(-1.25rem - var(--safe-left));
+  margin-right: calc(-1.25rem - var(--safe-right));
+}
+
+.footer-brand {
+  display: grid;
+  grid-template-columns: 1.875rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.footer-word {
+  margin: 0;
+}
+
+.footer-tagline {
+  margin: 2px 0 0;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--ink-500);
+}
+
+.footer-block {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.footer-head {
+  margin: 0;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--ink-700);
+}
+
+/* 16 个类型码四列铺开：既是给用户的索引，也是给抓取器的内链 */
+.footer-types {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.footer-type {
+  padding: 0.375rem 0;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-700);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-decoration: none;
+}
+
+.footer-qr {
+  grid-template-columns: 6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.footer-qr img {
+  width: 6rem;
+  height: 6rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.footer-legal {
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+/* 法务与联系方式是小字，但必须是实色：截图和低亮度屏幕下要读得清 */
+.footer-legal p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--ink-500);
+}
+
+.footer-legal a {
+  color: var(--ink-500);
+  text-decoration: none;
+}
+
+/* ============ 4. 四字母拆解图 ============ */
+
+.letters {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.letter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1.625rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.letter-row[data-numbered="true"] {
+  grid-template-columns: 1.375rem minmax(0, 1fr) 1.625rem;
+}
+
+.letter-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--ink-500);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.letter-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.letter-half {
+  padding: 0.4375rem 0.375rem;
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  color: var(--ink-500);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+/* 属于这个类型的那一边。靛蓝实底 + 白字，不靠透明度区分 */
+.letter-half[data-picked="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.letter-out {
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent-strong);
+  text-align: center;
+}
+
+.letters-result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.letters-result-label {
+  font-size: 0.75rem;
+  color: var(--accent-strong);
+}
+
+.letters-result-code {
+  display: flex;
+  justify-content: space-between;
+}
+
+.letters-result-code > span {
+  text-align: center;
+}
+
+.letters-result-code b {
+  display: block;
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent-strong);
+}
+
+.letters-result-code span {
+  font-size: 0.625rem;
+  color: var(--ink-500);
+}
+
+/* ============ 5. 结果页海报：首屏可截图 ============ */
+
+/*
+ * 类型码放大到 64px，并在卡底补一行四维摘要。
+ * 目的是让首屏那一张卡单独截图外发时自带信息，用户不需要再截第二张。
+ */
+.poster-code {
+  font-size: 4rem;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+/* 标签小字改实色，透明度会在截图压缩后糊掉 */
+.poster-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  opacity: 1;
+  color: var(--poster-ink-strong, inherit);
+}
+
+.poster-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.6875rem;
+}
+
+.poster-summary > b {
+  font-weight: 600;
+}
+
+/* 海报卡底色比原来沉一档，从暖白页面上浮起来 */
+.poster {
+  background: var(--poster-bg, #f1eff0);
+}
+
+.poster-chips .chip {
+  background: rgba(255, 255, 255, 0.62);
+  font-size: var(--step--1);
+}
+
+/* ============ 6. 答题页：量表两端不带褒贬 ============ */
+
+/*
+ * 原来「不太符合 / 很不符合」用暖橙。站内暖橙代表「消耗」与免责，
+ * 用在量表一端会暗示那一边更差，而五级量表只是强度，没有好坏。
+ * 强度继续靠圆点大小表达（见上面 data-weight 的尺寸阶梯）。
+ */
+.option[data-weight="-2"] .option-dot {
+  border-color: var(--ink-300);
+}
+
+.option[data-weight="-2"][data-selected="true"],
+.option[data-weight="-1"][data-selected="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.option[data-weight="-2"][data-selected="true"] .option-dot,
+.option[data-weight="-1"][data-selected="true"] .option-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+/* 头部承担进度：进度条贴在头部下沿，答题区因此不再有第二条 */
+
+/*
+ * 答题页头部。三槽同 .site-header，但中间是进度而不是页面名，
+ * 右侧是退出而不是次要入口。整块出血到容器之外，才能和页面顶边对齐。
+ */
+.quiz-topbar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0 -1.25rem 0.5rem;
+  /* 出血要连安全区一起吃掉，否则横屏时刘海那一侧会露出页面底色 */
+  margin-left: calc(-1.25rem - var(--safe-left));
+  margin-right: calc(-1.25rem - var(--safe-right));
+  padding-top: var(--safe-top);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.quiz-topbar-row {
+  display: grid;
+  grid-template-columns: minmax(3.5rem, auto) minmax(0, 1fr) minmax(3.5rem, auto);
+  align-items: center;
+  height: 3rem;
+  padding: 0 0.5rem;
+}
+
+.quiz-topbar-slot {
+  display: flex;
+  align-items: center;
+}
+
+.quiz-topbar-slot--end {
+  justify-content: flex-end;
+}
+
+.quiz-topbar-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  color: var(--ink-700);
+  cursor: pointer;
+}
+
+.quiz-topbar-title {
+  margin: 0;
+  text-align: center;
+  font-size: var(--step-0);
+  font-weight: 600;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.quiz-topbar-exit {
+  display: flex;
+  align-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding-right: 0.375rem;
+  font-size: var(--step--1);
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.quiz-progress-rail {
+  height: 3px;
+  background: var(--surface-sunken);
+}
+
+.quiz-progress-rail > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+/* 分组提示：告诉用户现在在第几组、这一组在问什么 */
+.quiz-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 14px;
+  background: var(--scene-tint);
+  border: 1px solid var(--scene-line);
+}
+
+.quiz-group[data-art="true"] {
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+}
+
+.quiz-group-art {
+  border-radius: 8px;
+}
+
+.quiz-group p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--scene-ink);
+}
+
+.quiz-autosave {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--ink-500);
+}
+
+.quiz-group-dots {
+  display: flex;
+}
+
+.quiz-group-dots > span {
+  width: 1.25rem;
+  height: 3px;
+  margin-left: 0.25rem;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.quiz-group-dots > span[data-done="true"] {
+  background: var(--accent);
+}
+
+/* ============ 7. 付费区：倒计时与折扣移出暖橙 ============ */
+
+/*
+ * 暖橙在站内只表示「消耗」和免责。倒计时和折扣是商业信息，
+ * 用中性底更诚实，也不会和上面「什么环境让你持续消耗」抢语义。
+ */
+.countdown {
+  background: var(--surface-sunken);
+  color: var(--ink-700);
+}
+
+.price-off {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+.checkout-title {
+  font-weight: 600;
+}
+
+/* 折叠里的其余条目：给标题，不泄漏正文 */
+.checkout-details ul {
+  display: grid;
+  gap: 0.4375rem;
+  margin: 0.125rem 0 0.25rem;
+  padding: 0;
+  list-style: none;
+}
+
+.checkout-details li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--ink-700);
+}
+
+/* ============ 8. 大屏（≥640）补齐头尾 ============ */
+
+@media (min-width: 640px) {
+  .site-header {
+    height: 3.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .site-footer {
+    padding: 2rem 2.5rem 2.5rem;
+  }
+
+  .footer-types {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+/*
+ * 头部已经把刘海高度算进自己的 padding，紧随其后的页面容器不能再算一次，
+ * 否则 iPhone 上首屏会多出一块空白。把 --safe-top 在页面容器上归零最省事：
+ * .illustrated-page 那些 calc(1.25rem + var(--safe-top)) 会就地解析成 1.25rem。
+ */
+.site-header + .page {
+  --safe-top: 0px;
+}
+
+/*
+ * 窄屏的类型码收一档。上面 .poster-code 把字号提到 4rem，
+ * 而原来的 359px 断点在文件更早的位置，会被后写的规则盖掉，所以在这里重申一次。
+ */
+@media (max-width: 359px) {
+  .poster-code {
+    font-size: 3rem;
+  }
+}
+
+/* 答题时优先保留题干、选项与返回入口，情境图不挤占短屏。 */
+@media (max-height: 680px) {
+  .quiz-group[data-art="true"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quiz-group-art {
+    display: none;
   }
 }

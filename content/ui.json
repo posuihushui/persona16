@@ -60,6 +60,9 @@
     "submitError": "暂时没能提交成功。答案还在，检查网络后可以再试一次。",
     "submitTimeout": "等待有点久。答案还在，可以检查网络后重新提交。",
     "submitVersionChanged": "题库刚刚更新，请刷新页面后重新作答。",
-    "completed": "已经答完，准备查看你的结果。"
+    "completed": "已经答完，准备查看你的结果。",
+    "exit": "退出",
+    "autoSaved": "进度已自动保存",
+    "groupHint": "跟着日常的自己选，没有标准答案。"
   }
 }

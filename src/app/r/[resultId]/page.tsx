@@ -12,13 +12,14 @@ import { ScoreSpectrum } from "@/components/Spectrum";
 import { TypePoster } from "@/components/TypePoster";
 import { ShareBar } from "@/components/ShareBar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { SceneIllustration, SceneSectionHeading, illustrationFor } from "@/components/SceneIllustration";
 import { TrackView } from "@/components/TrackView";
-import { freeView, loadPack } from "@/lib/content";
+import { freeView, listResultCodes, loadPack } from "@/lib/content";
 import { prisma } from "@/lib/db";
 import { hasPaidAccess } from "@/lib/entitlement";
 import { claimDiscount, quote } from "@/lib/pricing";
-import { absolute } from "@/lib/seo";
+import { absolute, siteUrl } from "@/lib/seo";
 import { readSessionKey } from "@/lib/session";
 import type { DimensionScore } from "@/lib/types";
 
@@ -91,100 +92,125 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
       : await quote(attempt.id, { sessionKey, openId }, pack.paywall);
   const reportIllustration = illustrationFor(illustrations.placements.resultReport);
 
+  /*
+   * 海报卡底的四维摘要。用户截首屏那一张就够了，不用再截光谱那一块。
+   * percent 是偏向 positivePole 的程度，这里取命中那一端的强度，和 pole 对齐。
+   */
+  const posterSummary = pack.scoring.dimensions
+    .map((dim) => dimensions.find((score) => score.id === dim.id))
+    .filter((score): score is DimensionScore => Boolean(score))
+    .map((score) => `${score.pole} ${Math.round(Math.max(score.percent, 100 - score.percent))}%`)
+    .join(" · ");
+
   return (
-    <main className="page result-page">
-      <TrackView name="result_view" slug={attempt.slug} attemptId={attempt.id} />
+    <>
+      <SiteHeader title="我的结果" backHref="/" action={{ label: "找回报告", href: "/retrieve" }} />
+      <main className="page result-page">
+        <TrackView name="result_view" slug={attempt.slug} attemptId={attempt.id} />
 
-      <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
-        {/* 首屏就是用户会截图的那张卡 */}
-        <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} compact heading />
-        <ShareBar attemptId={attempt.id} slug={attempt.slug} code={attempt.code} version={attempt.packVersion} label={doc.label} />
+        <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
+          {/* 首屏就是用户会截图的那张卡 */}
+          <TypePoster
+            code={doc.code}
+            doc={doc}
+            testName={pack.meta.name}
+            compact
+            heading
+            summary={posterSummary || undefined}
+            host={new URL(siteUrl()).host}
+          />
+          <ShareBar attemptId={attempt.id} slug={attempt.slug} code={attempt.code} version={attempt.packVersion} label={doc.label} />
 
-        {/* 得分先给图。用户看维度位置比看文字快得多 */}
-        <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
-          <SectionHead icon="layers" title={ui.result.axesTitle} hint={ui.result.axesHint} />
-          <ScoreSpectrum dimensions={pack.scoring.dimensions} scores={dimensions} />
-        </section>
+          {/* 得分先给图。用户看维度位置比看文字快得多 */}
+          <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
+            <SectionHead icon="layers" title={ui.result.axesTitle} hint={ui.result.axesHint} />
+            <ScoreSpectrum dimensions={pack.scoring.dimensions} scores={dimensions} />
+          </section>
 
-        <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <SceneSectionHeading scene={illustrations.placements.resultCore}>
-            <h2 className="h2">{ui.result.coreTitle}</h2>
-          </SceneSectionHeading>
-          {paid ? (
-            <p style={{ margin: 0, whiteSpace: "pre-line" }}>{doc.core}</p>
-          ) : (
-            <LockedPreview teaser={view?.teaser ?? ""} remaining={view?.teaserRemaining} />
-          )}
-        </section>
-
-        {paid && (
-          <div className="versus">
-            <div className="versus-col is-good">
-              <h3>{ui.result.atBest}</h3>
-              <p className="small" style={{ margin: 0 }}>{doc.atBest}</p>
-            </div>
-            <div className="versus-col is-bad">
-              <h3>{ui.result.atWorst}</h3>
-              <p className="small" style={{ margin: 0 }}>{doc.atWorst}</p>
-            </div>
-          </div>
-        )}
-
-
-        <hr className="divider" />
-
-        {reportIllustration && (
-          <div className="scene-note">
-            <SceneIllustration scene={illustrations.placements.resultReport} className="scene-note-art" />
-            <div className="scene-note-copy stack" style={{ "--stack-gap": "0.375rem" } as React.CSSProperties}>
-              <h2 className="h3">{reportIllustration.title}</h2>
-              <p className="small muted" style={{ margin: 0 }}>{reportIllustration.description}</p>
-            </div>
-          </div>
-        )}
-
-        {paid ? (
-          <>
-            <Link className="btn btn-block" href={`/r/${attempt.id}/report`}>
-              查看你的深度报告
-            </Link>
-            <Link className="small" href={`/t/${attempt.slug}/type/${attempt.code}`}>
-              查看 {attempt.code} 这个类型的完整解读 →
-            </Link>
-          </>
-        ) : (
-          <>
-            <TrackView name="paywall_view" slug={attempt.slug} attemptId={attempt.id} />
-            {priced && (
-              <Checkout
-                attemptId={attempt.id}
-                slug={attempt.slug}
-                code={attempt.code}
-                paywall={pack.paywall}
-                quote={{
-                  amount: priced.amount,
-                  listAmount: priced.listAmount,
-                  originalAmount: priced.originalAmount,
-                  discount: priced.discount
-                    ? {
-                        percent: priced.discount.percent,
-                        expiresAt: priced.discount.expiresAt.toISOString(),
-                      }
-                    : null,
-                }}
-              />
+          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+            <SceneSectionHeading scene={illustrations.placements.resultCore}>
+              <h2 className="h2">{ui.result.coreTitle}</h2>
+            </SceneSectionHeading>
+            {paid ? (
+              <p style={{ margin: 0, whiteSpace: "pre-line" }}>{doc.core}</p>
+            ) : (
+              <LockedPreview teaser={view?.teaser ?? ""} remaining={view?.teaserRemaining} />
             )}
-          </>
-        )}
+          </section>
 
-        <div className="notice">{pack.meta.disclaimer}</div>
+          {paid && (
+            <div className="versus">
+              <div className="versus-col is-good">
+                <h3>{ui.result.atBest}</h3>
+                <p className="small" style={{ margin: 0 }}>{doc.atBest}</p>
+              </div>
+              <div className="versus-col is-bad">
+                <h3>{ui.result.atWorst}</h3>
+                <p className="small" style={{ margin: 0 }}>{doc.atWorst}</p>
+              </div>
+            </div>
+          )}
 
-        <p className="small muted" style={{ margin: 0 }}>
-          {ui.result.versionNote.replace("{version}", attempt.packVersion)}
-        </p>
 
-        <SiteFooter />
-      </div>
-    </main>
+          <hr className="divider" />
+
+          {reportIllustration && (
+            <div className="scene-note">
+              <SceneIllustration scene={illustrations.placements.resultReport} className="scene-note-art" />
+              <div className="scene-note-copy stack" style={{ "--stack-gap": "0.375rem" } as React.CSSProperties}>
+                <h2 className="h3">{reportIllustration.title}</h2>
+                <p className="small muted" style={{ margin: 0 }}>{reportIllustration.description}</p>
+              </div>
+            </div>
+          )}
+
+          {paid ? (
+            <>
+              <Link className="btn btn-block" href={`/r/${attempt.id}/report`}>
+                查看你的深度报告
+              </Link>
+              <Link className="small" href={`/t/${attempt.slug}/type/${attempt.code}`}>
+                查看 {attempt.code} 这个类型的完整解读 →
+              </Link>
+            </>
+          ) : (
+            <>
+              <TrackView name="paywall_view" slug={attempt.slug} attemptId={attempt.id} />
+              {priced && (
+                <Checkout
+                  attemptId={attempt.id}
+                  slug={attempt.slug}
+                  code={attempt.code}
+                  paywall={pack.paywall}
+                  quote={{
+                    amount: priced.amount,
+                    listAmount: priced.listAmount,
+                    originalAmount: priced.originalAmount,
+                    discount: priced.discount
+                      ? {
+                          percent: priced.discount.percent,
+                          expiresAt: priced.discount.expiresAt.toISOString(),
+                        }
+                      : null,
+                  }}
+                />
+              )}
+            </>
+          )}
+
+          <div className="notice">{pack.meta.disclaimer}</div>
+
+          <p className="small muted" style={{ margin: 0 }}>
+            {ui.result.versionNote.replace("{version}", attempt.packVersion)}
+          </p>
+
+          <SiteFooter
+            slug={attempt.slug}
+            codes={listResultCodes(pack)}
+            cta={{ label: "再测一次", href: `/t/${attempt.slug}/quiz` }}
+          />
+        </div>
+      </main>
+    </>
   );
 }

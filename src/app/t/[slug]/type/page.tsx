@@ -7,6 +7,7 @@ import { SceneIllustration } from "@/components/SceneIllustration";
 import { TypeArt } from "@/components/TypeArt";
 import { TypeGrid } from "@/components/TypeGrid";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { listPublishedPacks, listResultCodes, loadPack } from "@/lib/content";
 import { absolute, breadcrumbSchema, typeListSchema } from "@/lib/seo";
 import illustrations from "../../../../../content/illustrations.json";
@@ -54,61 +55,60 @@ export default async function TypeIndexPage({ params }: { params: Promise<{ slug
   const codes = listResultCodes(pack);
 
   return (
-    <main className="page" style={{ paddingTop: "2rem", paddingBottom: "2rem" }}>
-      <JsonLd
-        data={[
-          typeListSchema(pack, codes),
-          breadcrumbSchema([
-            { name: "首页", path: "/" },
-            { name: pack.meta.name, path: `/t/${slug}` },
-            { name: "16 种类型", path: `/t/${slug}/type` },
-          ]),
-        ]}
+    <>
+      <SiteHeader
+        title="16 种类型"
+        backHref={`/t/${slug}`}
+        action={{ label: "开始测试", href: `/t/${slug}/quiz` }}
       />
+      <main className="page" style={{ paddingTop: "1.5rem", paddingBottom: "2rem" }}>
+        <JsonLd
+          data={[
+            typeListSchema(pack, codes),
+            breadcrumbSchema([
+              { name: "首页", path: "/" },
+              { name: pack.meta.name, path: `/t/${slug}` },
+              { name: "16 种类型", path: `/t/${slug}/type` },
+            ]),
+          ]}
+        />
 
-      <nav className="small muted" style={{ marginBottom: "1.25rem" }}>
-        <Link href="/">首页</Link>
-        {" / "}
-        <Link href={`/t/${slug}`}>{pack.meta.name}</Link>
-        {" / "}
-        <span>16 种类型</span>
-      </nav>
-
-      <div className="stack" style={{ "--stack-gap": "1.5rem" } as React.CSSProperties}>
-        <div className="scene-note">
-          <SceneIllustration scene={illustrations.placements.typeIndex} className="scene-note-art" priority />
-          <div className="scene-note-copy stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-            <h1 className="h1">{illustrations.types.title}</h1>
-            <p className="muted">{illustrations.types.hint}</p>
+        <div className="stack" style={{ "--stack-gap": "1.5rem" } as React.CSSProperties}>
+          <div className="scene-note">
+            <SceneIllustration scene={illustrations.placements.typeIndex} className="scene-note-art" priority />
+            <div className="scene-note-copy stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+              <h1 className="h1">{illustrations.types.title}</h1>
+              <p className="muted">{illustrations.types.hint}</p>
+            </div>
           </div>
+
+          <Link className="btn btn-block" href={`/t/${slug}/quiz`}>
+            直接开始测试
+          </Link>
+
+          <TypeGrid pack={pack} />
+
+          <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+            <SectionHead icon="spark" title="一句话认出每一种" />
+            <div className="stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
+              {codes.map((code) => {
+                const doc = pack.results[code];
+                return (
+                  <Link key={code} href={`/t/${slug}/type/${code}`} className="type-line">
+                    <TypeArt code={code} size={38} className="cell-art" />
+                    <b>{code}</b>
+                    <span>{doc.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="notice">{pack.meta.disclaimer}</div>
+
+          <SiteFooter slug={slug} codes={codes} />
         </div>
-
-        <Link className="btn btn-block" href={`/t/${slug}/quiz`}>
-          直接开始测试
-        </Link>
-
-        <TypeGrid pack={pack} />
-
-        <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
-          <SectionHead icon="spark" title="一句话认出每一种" />
-          <div className="stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-            {codes.map((code) => {
-              const doc = pack.results[code];
-              return (
-                <Link key={code} href={`/t/${slug}/type/${code}`} className="type-line">
-                  <TypeArt code={code} size={38} className="cell-art" />
-                  <b>{code}</b>
-                  <span>{doc.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="notice">{pack.meta.disclaimer}</div>
-
-        <SiteFooter />
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

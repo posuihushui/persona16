@@ -9,6 +9,10 @@ import type { ResultDoc } from "@/lib/types";
  *   底色来自类型自己的色板，深浅色模式下长得一样
  *   文字做真正的层次：小字拉字距当标签，类型码做大并收紧字距，
  *   中间一条短线断开，描述用更宽松的行高
+ *
+ * 优化点（本次）：
+ *   1. 卡底补一行四维摘要 + 站点域名。用户截这一张就够了，不用再截光谱那一块。
+ *   2. 标签小字改实色（tone.ink 的更深一档），微信压缩后不会糊掉。
  */
 export function TypePoster({
   code,
@@ -16,12 +20,18 @@ export function TypePoster({
   testName,
   compact = false,
   heading = false,
+  summary,
+  host,
 }: {
   code: string;
   doc: Pick<ResultDoc, "name" | "label" | "keywords">;
   testName: string;
   compact?: boolean;
   heading?: boolean;
+  /** 四维摘要，形如 "I 82% · N 76% · F 68% · J 66%"。类型页不传（那里没有作答） */
+  summary?: string;
+  /** 截图外发时的来源标记，传 siteUrl() 的 host */
+  host?: string;
 }) {
   const tone = toneFor(code);
 
@@ -32,6 +42,8 @@ export function TypePoster({
         {
           "--poster-bg": tone.card,
           "--poster-ink": tone.ink,
+          // 标签与摘要用的实色。比正文更深，保证 11px 小字也在 4.5:1 以上
+          "--poster-ink-strong": tone.deep,
         } as React.CSSProperties
       }
     >
@@ -52,6 +64,13 @@ export function TypePoster({
             </span>
           ))}
         </p>
+
+        {(summary || host) && (
+          <div className="poster-summary">
+            <b>{summary}</b>
+            {host && <span>{host}</span>}
+          </div>
+        )}
       </div>
     </article>
   );
