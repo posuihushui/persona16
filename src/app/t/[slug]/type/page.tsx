@@ -3,11 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SectionHead } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
+import { SceneIllustration } from "@/components/SceneIllustration";
 import { TypeArt } from "@/components/TypeArt";
 import { TypeGrid } from "@/components/TypeGrid";
 import { SiteFooter } from "@/components/SiteFooter";
 import { listPublishedPacks, listResultCodes, loadPack } from "@/lib/content";
 import { absolute, breadcrumbSchema, typeListSchema } from "@/lib/seo";
+import illustrations from "../../../../../content/illustrations.json";
 
 /** 类型索引页。抓取器一次看到全部 16 个类型的入口，也是站内链接的枢纽。 */
 
@@ -73,12 +75,12 @@ export default async function TypeIndexPage({ params }: { params: Promise<{ slug
       </nav>
 
       <div className="stack" style={{ "--stack-gap": "1.5rem" } as React.CSSProperties}>
-        <div className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <h1 className="h1">{pack.meta.name}的 16 种类型</h1>
-          <p className="muted">
-            四个维度各取一边，组合起来是 16 种。下面每一种都可以单独点进去看完整解读。
-            想知道自己属于哪一种，做完 {pack.meta.questionCount} 道题就有答案。
-          </p>
+        <div className="scene-note">
+          <SceneIllustration scene={illustrations.placements.typeIndex} className="scene-note-art" priority />
+          <div className="scene-note-copy stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+            <h1 className="h1">{illustrations.types.title}</h1>
+            <p className="muted">{illustrations.types.hint}</p>
+          </div>
         </div>
 
         <Link className="btn btn-block" href={`/t/${slug}/quiz`}>

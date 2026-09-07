@@ -1,5 +1,6 @@
 import { cache } from "react";
 import ui from "../../../../content/ui.json";
+import illustrations from "../../../../content/illustrations.json";
 import { readOpenId } from "@/lib/wechat/identity";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -11,6 +12,7 @@ import { ScoreSpectrum } from "@/components/Spectrum";
 import { TypePoster } from "@/components/TypePoster";
 import { ShareBar } from "@/components/ShareBar";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SceneIllustration, SceneSectionHeading, illustrationFor } from "@/components/SceneIllustration";
 import { TrackView } from "@/components/TrackView";
 import { freeView, loadPack } from "@/lib/content";
 import { prisma } from "@/lib/db";
@@ -87,6 +89,7 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
     paid || !sessionKey
       ? null
       : await quote(attempt.id, { sessionKey, openId }, pack.paywall);
+  const reportIllustration = illustrationFor(illustrations.placements.resultReport);
 
   return (
     <main className="page result-page">
@@ -104,7 +107,9 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
         </section>
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <h2 className="h2">{ui.result.coreTitle}</h2>
+          <SceneSectionHeading scene={illustrations.placements.resultCore}>
+            <h2 className="h2">{ui.result.coreTitle}</h2>
+          </SceneSectionHeading>
           {paid ? (
             <p style={{ margin: 0, whiteSpace: "pre-line" }}>{doc.core}</p>
           ) : (
@@ -127,6 +132,16 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
 
 
         <hr className="divider" />
+
+        {reportIllustration && (
+          <div className="scene-note">
+            <SceneIllustration scene={illustrations.placements.resultReport} className="scene-note-art" />
+            <div className="scene-note-copy stack" style={{ "--stack-gap": "0.375rem" } as React.CSSProperties}>
+              <h2 className="h3">{reportIllustration.title}</h2>
+              <p className="small muted" style={{ margin: 0 }}>{reportIllustration.description}</p>
+            </div>
+          </div>
+        )}
 
         {paid ? (
           <>

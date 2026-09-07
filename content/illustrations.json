@@ -1,0 +1,127 @@
+{
+  "version": "1.0.0",
+  "assets": {
+    "discovery": {
+      "src": "/illustrations/discovery-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "一个人站在镜子前，观察镜中不同情境下的自己",
+      "title": "看见不同情境里的自己",
+      "description": "从日常选择出发，认识此刻的行为偏好。"
+    },
+    "energy": {
+      "src": "/illustrations/energy-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "有人在树下安静阅读，有人在一旁轻松交谈，呈现两种恢复精力的方式",
+      "title": "精力，从哪里回来",
+      "description": "独处或交流，你通常怎样恢复精力？"
+    },
+    "information": {
+      "src": "/illustrations/information-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "两个人观察同一株植物，一人用放大镜看叶片细节，一人把观察连接成图景",
+      "title": "你先看见细节，还是可能",
+      "description": "接收信息时，留意事实与细节，或联想到更大的图景。"
+    },
+    "decisions": {
+      "src": "/illustrations/decisions-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "一个人在桌前同时观察逻辑拼块与代表感受的心形，思考如何做出选择",
+      "title": "做选择时，你在意什么",
+      "description": "权衡逻辑，也体会感受，看看自己更常从哪里出发。"
+    },
+    "rhythm": {
+      "src": "/illustrations/rhythm-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "两个人准备出行，一人整理有序的计划卡片，一人探索地图上的不同路线",
+      "title": "按计划走，或边走边看",
+      "description": "面对日常安排，你偏好确定的节奏，还是灵活的空间？"
+    },
+    "growth": {
+      "src": "/illustrations/growth-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "一个人用小水壶照料处于不同生长阶段的植物，旁边放着打开的笔记本",
+      "title": "认识自己，然后向前一点",
+      "description": "把对偏好的理解，变成日常里可以尝试的小行动。"
+    },
+    "relationships": {
+      "src": "/illustrations/relationships-v1.png",
+      "width": 1024,
+      "height": 1024,
+      "alt": "两个人相对而坐，交换形状不同的对话拼块，尝试理解彼此的表达",
+      "title": "理解自己，也理解彼此",
+      "description": "从不同的表达与相处方式里，找到更舒服的连接。"
+    }
+  },
+  "dimensions": {
+    "EI": "energy",
+    "SN": "information",
+    "TF": "decisions",
+    "JP": "rhythm"
+  },
+  "home": {
+    "eyebrow": "PERSONA16 · 自我探索手记",
+    "title": "原来，我是这样的人。",
+    "description": "从日常的小选择，读懂自己的习惯、精力与相处方式。",
+    "exploreTitle": "把自己，慢慢看清楚",
+    "exploreHint": "关于精力、选择，还有下一步。"
+  },
+  "intro": {
+    "eyebrow": "一次与自己的轻松对话",
+    "dimensionsTitle": "四个角度，看见你的日常",
+    "dimensionsHint": "两端都是自然的偏好，看看自己更靠近哪边。",
+    "typesTitle": "不同组合，各有自己的样子",
+    "typesHint": "点开一种类型，先读一段关于它的描述。",
+    "benefitsTitle": "不止认识四个字母",
+    "benefits": [
+      {
+        "title": "看见你的倾向",
+        "description": "免费查看类型码、关键词和四条维度轴的位置。",
+        "scene": "discovery"
+      },
+      {
+        "title": "理解你的日常",
+        "description": "从性格描述的开头，看看熟悉的选择和习惯。",
+        "scene": "energy"
+      },
+      {
+        "title": "探索更多可能",
+        "description": "深度报告继续解读工作、相处与成长，可按需解锁。",
+        "scene": "growth"
+      }
+    ],
+    "startHint": "不用注册，免费查看类型与四维倾向"
+  },
+  "quiz": {
+    "hint": "跟着日常的自己选，没有标准答案。"
+  },
+  "types": {
+    "title": "16 种组合，16 种认识自己的入口",
+    "hint": "没有更好的类型，只有不同的习惯与视角。"
+  },
+  "placements": {
+    "homeHero": "discovery",
+    "homeTest": "information",
+    "homeBenefits": [
+      "energy",
+      "decisions",
+      "growth"
+    ],
+    "introHero": "discovery",
+    "quiz": "discovery",
+    "typeIndex": "relationships",
+    "typeCore": "discovery",
+    "typeRelated": "relationships",
+    "resultCore": "discovery",
+    "resultReport": "growth",
+    "reportCognition": "information",
+    "reportCareer": "rhythm",
+    "reportRelationships": "relationships",
+    "reportGrowth": "growth"
+  }
+}

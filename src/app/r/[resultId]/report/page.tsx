@@ -4,12 +4,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { SectionHead } from "@/components/Icon";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SceneSectionHeading } from "@/components/SceneIllustration";
 import { TrackView } from "@/components/TrackView";
 import { loadPack } from "@/lib/content";
 import { prisma } from "@/lib/db";
 import { hasPaidAccess } from "@/lib/entitlement";
 import { syncOrderStatus } from "@/lib/pay/reconcile";
 import { readSessionKey } from "@/lib/session";
+import illustrations from "../../../../../content/illustrations.json";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -73,7 +75,9 @@ export default async function ReportPage({
         </div>
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <SectionHead icon="layers" title="你的认知偏好是怎么组合的" />
+          <SceneSectionHeading scene={illustrations.placements.reportCognition}>
+            <SectionHead icon="layers" title="你的认知偏好是怎么组合的" />
+          </SceneSectionHeading>
           <p style={{ margin: 0, whiteSpace: "pre-line" }}>{doc.cognition}</p>
         </section>
 
@@ -103,7 +107,9 @@ export default async function ReportPage({
         </section>
 
         <section className="stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>
-          <SectionHead icon="grid" title="工作环境" />
+          <SceneSectionHeading scene={illustrations.placements.reportCareer}>
+            <SectionHead icon="grid" title="工作环境" />
+          </SceneSectionHeading>
           <div className="versus">
             <div className="versus-col is-good">
               <h3>让你回血的</h3>
@@ -142,7 +148,9 @@ export default async function ReportPage({
         </section>
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <SectionHead icon="link" title="亲密关系" />
+          <SceneSectionHeading scene={illustrations.placements.reportRelationships}>
+            <SectionHead icon="link" title="亲密关系" />
+          </SceneSectionHeading>
           <div className="card stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
             <h3 className="h3">你在关系里的样子</h3>
             <p style={{ margin: 0 }}>{doc.relationship.inLove}</p>
@@ -170,7 +178,9 @@ export default async function ReportPage({
         </section>
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <SectionHead icon="steps" title="给你的三条成长建议" />
+          <SceneSectionHeading scene={illustrations.placements.reportGrowth}>
+            <SectionHead icon="steps" title="给你的三条成长建议" />
+          </SceneSectionHeading>
           <ol className="numbered">
             {doc.growth.map((g) => (
               <li key={g}>

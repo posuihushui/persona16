@@ -5,12 +5,13 @@ import { Faq } from "@/components/Faq";
 import { Icon, SectionHead } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
 import { DimensionAxes } from "@/components/Spectrum";
-import { CoverArt } from "@/components/TypeArt";
+import { SceneIllustration, illustrationFor } from "@/components/SceneIllustration";
 import { SiteFooter } from "@/components/SiteFooter";
 import { TrackView } from "@/components/TrackView";
 import { TypeGrid } from "@/components/TypeGrid";
 import { listTestSlugs, loadPack } from "@/lib/content";
 import { absolute, breadcrumbSchema, faqSchema, quizSchema } from "@/lib/seo";
+import illustrations from "../../../../content/illustrations.json";
 
 /**
  * 测试介绍页。
@@ -60,7 +61,7 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
   if (pack.meta.status !== "published") notFound();
 
   return (
-    <main className="page" style={{ paddingTop: "2.5rem", paddingBottom: "2rem" }}>
+    <main className="page illustrated-page illustrated-page--intro">
       <TrackView name="landing_view" slug={slug} />
       <JsonLd
         data={[
@@ -75,12 +76,10 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
 
       <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
         {/* 首屏：一张大图加一句话，不需要读完整段落就能开始 */}
-        <section className="cover">
-          <div className="cover-art">
-            <CoverArt />
-          </div>
-          <div className="cover-body">
-            <p className="poster-eyebrow">自我认知测试</p>
+        <section className="scene-hero">
+          <SceneIllustration scene={illustrations.placements.introHero} className="scene-hero-art" priority />
+          <div className="scene-hero-copy">
+            <p className="poster-eyebrow">{illustrations.intro.eyebrow}</p>
             <h1 className="cover-title">{pack.meta.name}</h1>
             <hr className="poster-rule" />
             <p className="cover-tagline">{pack.meta.tagline}</p>
@@ -110,34 +109,51 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
         </Link>
 
         <p className="small muted" style={{ margin: 0, textAlign: "center" }}>
-          不用注册，不用分享，不用关注
+          {illustrations.intro.startHint}
         </p>
 
         {/* 图形优先：四条轴一眼看懂这个测试在量什么 */}
         <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
-          <SectionHead icon="layers" title="测的是四件事" hint="每件事你都会落在两端之间的某个位置，不是打分" />
+          <SectionHead icon="layers" title={illustrations.intro.dimensionsTitle} hint={illustrations.intro.dimensionsHint} />
+          <div className="dimension-scene-grid">
+            {pack.scoring.dimensions.map((dimension) => {
+              const scene = illustrations.dimensions[dimension.id as keyof typeof illustrations.dimensions];
+              const asset = scene ? illustrationFor(scene) : null;
+              if (!asset) return null;
+              return (
+                <article key={dimension.id} className="dimension-scene">
+                  <SceneIllustration scene={scene} className="dimension-scene-art" />
+                  <h3 className="h3">{dimension.name}</h3>
+                  <p className="small muted">{asset.description}</p>
+                </article>
+              );
+            })}
+          </div>
           <DimensionAxes dimensions={pack.scoring.dimensions} compact />
         </section>
 
         {/* 类型矩阵取代扁平标签列表 */}
         <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
-          <SectionHead icon="grid" title="四个维度组合出 16 种" hint="点开任意一种，先看看像不像你" />
+          <SectionHead icon="grid" title={illustrations.intro.typesTitle} hint={illustrations.intro.typesHint} />
           <TypeGrid pack={pack} />
           <Link className="btn btn-ghost btn-block" href={`/t/${slug}/type`}>
             看全部 16 种的完整解读
           </Link>
         </section>
 
-        <section className="card stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
-          <SectionHead icon="spark" title="测完你会拿到" />
-          <ul
-            className="stack small"
-            style={{ "--stack-gap": "0.5rem", margin: 0 } as React.CSSProperties}
-          >
-            <li>你的类型码，和这个类型的一句话人设</li>
-            <li>四条轴上你各自偏向哪边、偏多少</li>
-            <li>你最舒服的状态，和你最容易累的状态</li>
-          </ul>
+        <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+          <SectionHead icon="spark" title={illustrations.intro.benefitsTitle} />
+          <div className="scene-card-grid">
+            {illustrations.intro.benefits.map((benefit) => (
+              <article className="scene-card" key={benefit.title}>
+                <SceneIllustration scene={benefit.scene} className="scene-card-art" />
+                <div className="scene-card-body stack" style={{ "--stack-gap": "0.375rem" } as React.CSSProperties}>
+                  <h3 className="h3">{benefit.title}</h3>
+                  <p className="small muted" style={{ margin: 0 }}>{benefit.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         {/* 长文本折叠，但仍在 HTML 里，抓取器读得到 */}

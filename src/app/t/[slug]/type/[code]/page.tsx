@@ -8,8 +8,10 @@ import { TypeSpectrum } from "@/components/Spectrum";
 import { TypePoster } from "@/components/TypePoster";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SceneSectionHeading } from "@/components/SceneIllustration";
 import { freeView, listPublishedPacks, listResultCodes, loadPack } from "@/lib/content";
 import { absolute, breadcrumbSchema, faqSchema, typeArticleSchema } from "@/lib/seo";
+import illustrations from "../../../../../../content/illustrations.json";
 
 /**
  * 单个类型的解读页。
@@ -122,7 +124,9 @@ export default async function TypePage({
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
           {/* 海报里的类型码是图形排版，这里承担页面真正的 h1 */}
-          <h1 className="h2">{doc.code} {doc.name}大概是什么样的人</h1>
+          <SceneSectionHeading scene={illustrations.placements.typeCore}>
+            <h1 className="h2">{doc.code} {doc.name}大概是什么样的人</h1>
+          </SceneSectionHeading>
           <LockedPreview teaser={view.teaser ?? ""} remaining={view.teaserRemaining} />
         </section>
 
@@ -138,10 +142,14 @@ export default async function TypePage({
         </section>
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <h2 className="h2">{doc.code} 和这几类人怎么相处</h2>
-          <p className="small muted" style={{ margin: 0 }}>
-            下面是这几个类型的入口，具体的相处提示在深度报告里。
-          </p>
+          <SceneSectionHeading scene={illustrations.placements.typeRelated}>
+            <div className="stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
+              <h2 className="h2">{doc.code} 和这几类人怎么相处</h2>
+              <p className="small muted" style={{ margin: 0 }}>
+                下面是这几个类型的入口，具体的相处提示在深度报告里。
+              </p>
+            </div>
+          </SceneSectionHeading>
           <p className="wrap" style={{ margin: 0 }}>
             {doc.withOthers.map((item) => {
               const other = pack.results[item.code];
