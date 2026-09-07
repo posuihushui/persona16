@@ -91,6 +91,7 @@ table {
   --surface-raised: #ffffff;
   --surface-sunken: #f2f1ec;
   --line: #e5e3dc;
+  --rule: #d5d3ca; /* 比 --line 深一档，只给刻度线用 */
 
   --accent: #5b6abf;
   --accent-strong: #3a4585;
@@ -157,6 +158,7 @@ table {
     --surface-raised: #191b33;
     --surface-sunken: #0b0c1a;
     --line: #2a2c47;
+    --rule: #3a3d5e;
 
     --accent: #8b96e0;
     --accent-strong: #a3ace9;
@@ -2389,4 +2391,418 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   .quiz-group-art {
     display: none;
   }
+}
+
+/* ============ 9. 首页：拿到什么 · 四个角度 ============ */
+/*
+ * 对应设计稿 01 首页的第三、四节。首页原来只有一张测试卡加一列情境卡，
+ * 读完不知道测出来会拿到什么，也不知道四条轴分别在问什么。
+ * 这两节把「结果长什么样」和「四个角度」摊开，都是 375px 下的两列。
+ */
+
+/* 「测完你会拿到什么」：左边一张类型卡缩略，右边两条说明 */
+.gets {
+  display: grid;
+  grid-template-columns: 8.25rem minmax(0, 1fr);
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+/*
+ * 类型卡缩略。底色取自类型色板，和结果页那张海报是同一套推导，
+ * 用户在首页看到的样子就是测完拿到的样子。
+ */
+.gets-card {
+  padding: 0.5rem 0.5rem 0.625rem;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gets-card-art {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gets-card-label {
+  margin: 0.5rem 0 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.gets-card-code {
+  margin: 2px 0 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.gets-card-name {
+  margin: 3px 0 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* 关键词用 .wrap（带 @supports 回退），不写内联 flex gap */
+.gets-card-chips {
+  margin: 0.375rem 0 0;
+}
+
+.gets-card-chips .chip {
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 0.625rem;
+}
+
+.gets-body h3 {
+  margin: 0;
+  font-size: var(--step-1);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.gets-body p {
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.65;
+  color: var(--ink-500);
+}
+
+/* 「四个角度」：2×2，每格一张情境图 + 轴标 + 一句话 */
+.angles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.angle {
+  padding: 0.75rem;
+  border: 1px solid var(--scene-line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.angle-art {
+  max-width: 7.5rem;
+  margin: 0 auto 0.625rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--scene-paper);
+}
+
+.angle-axis {
+  margin: 0;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-500);
+}
+
+.angle h3 {
+  margin: 2px 0 0;
+  font-size: var(--step-0);
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.angle p {
+  margin: 0.25rem 0 0;
+  font-size: var(--step--1);
+  line-height: 1.6;
+  color: var(--ink-500);
+}
+
+/* 首屏速览的单位小字：12–13px 一律实色，不用 --ink-400（交接件验证清单） */
+.fact > span {
+  color: var(--ink-500);
+}
+
+@media (min-width: 640px) {
+  .angles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .gets {
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+}
+
+/* ============ 10. 介绍页：四条轴只讲刻度，不讲得分 ============ */
+/*
+ * 对应设计稿 02。同一个 .spectrum 结构复用两处：
+ * 结果页那条要标出「你在哪一点」，介绍页这条只说明「两端是什么」。
+ * 所以 is-axis 不画圆点，改成两端同色渐入 —— 两端必须同色，
+ * 否则会暗示其中一端更好，而这四条轴没有好坏。
+ */
+.spectrum-axis-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 0.375rem;
+}
+
+.spectrum-axis-head > span:first-child {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--ink-700);
+}
+
+.spectrum-axis-head > span:last-child {
+  font-size: 0.6875rem;
+  color: var(--ink-500);
+}
+
+.spectrum-track.is-axis {
+  height: 12px;
+  background-image: linear-gradient(
+    to right,
+    var(--accent-soft) 0%,
+    var(--surface-sunken) 30%,
+    var(--surface-sunken) 70%,
+    var(--accent-soft) 100%
+  );
+}
+
+/* 25% 与 75% 两道刻度。伪元素而不是空 span，标记里不留装饰节点 */
+.spectrum-track.is-axis::before,
+.spectrum-track.is-axis::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 1px;
+  background: var(--rule);
+}
+
+.spectrum-track.is-axis::before {
+  left: 25%;
+}
+
+.spectrum-track.is-axis::after {
+  left: 75%;
+}
+
+/* 两端的中文名是 13px，按验证清单改实色 */
+.spectrum-end {
+  color: var(--ink-500);
+}
+
+.spectrum-caption {
+  color: var(--ink-500);
+}
+
+/*
+ * 介绍页头卡是横的：118px 插画在左，标题在右。
+ * 首页那张是竖的（184px 居中），两处刻意不同——首页要先给情绪，
+ * 介绍页用户已经点进来了，先给的是「这是什么测试」。
+ */
+.illustrated-page--intro .scene-hero {
+  grid-template-columns: 7.375rem minmax(0, 1fr);
+  padding: 1rem;
+}
+
+.illustrated-page--intro .scene-hero-art {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+/* 脚注与刻度之间一条细线，把「说明」和「图」分开 */
+.spectrum-footnote {
+  margin: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--surface-sunken);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--ink-500);
+}
+
+/* ============ 11. 结果页光谱：位置、强度与填充 ============ */
+/*
+ * 对应设计稿 04。介绍页那条轴只说明两端（is-axis），
+ * 这条要回答「你在哪一点、偏了多少」，所以多三样：
+ * 右上的强度标签、两端的百分比、从中线填到命中侧的色带。
+ */
+.spectrum--score .spectrum-end {
+  width: 2.125rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.spectrum--score .spectrum-end > b {
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.spectrum-pct {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.625rem;
+  line-height: 1.2;
+}
+
+.spectrum-end.is-hit .spectrum-pct {
+  font-weight: 600;
+}
+
+.spectrum-strength {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.spectrum--score .spectrum-track {
+  height: 12px;
+}
+
+/*
+ * 填充在圆点之下、中线之上。用浅一档的靛蓝而不是 --accent 实色：
+ * 圆点才是「你在这里」，色带只是把距离画出来，不该抢圆点。
+ */
+.spectrum-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: #dfe3f6;
+}
+
+.spectrum--score .spectrum-dot {
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  margin-left: -10px;
+}
+
+/* 字母条在结果页收一档，让上面的圆点仍是这一块的重心 */
+.letters-result--compact .letters-result-code b {
+  font-size: 1.375rem;
+}
+
+/* ============ 12. 海报的两种形态 ============ */
+/*
+ * 对应设计稿 04 与 05。同一个组件两种排法：
+ * 结果页那张要被截图外发，几何满宽、类型码 64px、左上角一枚品牌套印；
+ * 类型页那张只是文章头图，横排 118px 缩略图配标题，不喧宾夺主。
+ */
+.poster-art {
+  position: relative;
+}
+
+/* 套印跟着卡片文字色走，深浅色模式下都压得住几何 */
+.poster-stamp {
+  position: absolute;
+  left: 1.125rem;
+  top: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--poster-ink-strong, inherit);
+}
+
+.poster-headline {
+  display: flex;
+  align-items: baseline;
+}
+
+.poster-headline > .poster-name {
+  margin-left: 0.625rem;
+}
+
+.poster-body {
+  padding: 1.125rem 1.375rem 1.375rem;
+}
+
+/* 类型页：横排紧凑卡 */
+.poster--compact {
+  display: grid;
+  grid-template-columns: 7.375rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border-radius: 20px;
+}
+
+.poster--compact .poster-art {
+  width: 100%;
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.poster--compact .poster-body {
+  padding: 0;
+}
+
+.poster--compact .poster-eyebrow {
+  margin: 0;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+}
+
+.poster--compact .poster-headline {
+  display: block;
+}
+
+.poster--compact .poster-code {
+  font-size: 2.125rem;
+  line-height: 1;
+}
+
+.poster--compact .poster-headline > .poster-name {
+  margin: 0.375rem 0 0;
+  font-size: var(--step-1);
+}
+
+.poster--compact .poster-label {
+  margin: 0.375rem 0 0;
+  font-size: var(--step--1);
+  line-height: 1.55;
+}
+
+/* 紧凑卡不放分隔线与关键词：标记里仍留着，只是这一处不显示 */
+.poster--compact .poster-rule,
+.poster--compact .poster-chips {
+  display: none;
+}
+
+/* ============ 13. 类型页：相关类型两列卡 ============ */
+/*
+ * 对应设计稿 05。原来是一排 chip，类型名挤不下也不好点。
+ * 改成两列卡片之后每格都超过 44px，类型码与中文名各占一行。
+ */
+.type-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.type-link {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  text-decoration: none;
+}
+
+.type-link > b {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+}
+
+.type-link > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--ink-500);
 }

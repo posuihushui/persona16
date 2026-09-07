@@ -113,8 +113,8 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
           <TypePoster
             code={doc.code}
             doc={doc}
-            testName={pack.meta.name}
-            compact
+            testName={ui.result.posterEyebrow}
+            stamp={pack.meta.name}
             heading
             summary={posterSummary || undefined}
             host={new URL(siteUrl()).host}
@@ -124,7 +124,11 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
           {/* 得分先给图。用户看维度位置比看文字快得多 */}
           <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
             <SectionHead icon="layers" title={ui.result.axesTitle} hint={ui.result.axesHint} />
-            <ScoreSpectrum dimensions={pack.scoring.dimensions} scores={dimensions} />
+            <ScoreSpectrum
+              dimensions={pack.scoring.dimensions}
+              scores={dimensions}
+              summaryLabel={ui.result.axesSummary}
+            />
           </section>
 
           <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>

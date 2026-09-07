@@ -5,7 +5,6 @@ import { Faq } from "@/components/Faq";
 import { LetterBreakdown } from "@/components/LetterBreakdown";
 import { LockedPreview } from "@/components/LockedPreview";
 import { SectionHead } from "@/components/Icon";
-import { TypeSpectrum } from "@/components/Spectrum";
 import { TypePoster } from "@/components/TypePoster";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -84,7 +83,6 @@ export default async function TypePage({
   if (!doc || pack.meta.status !== "published") notFound();
 
   const allCodes = listResultCodes(pack);
-  const order = pack.scoring.codeOrder ?? pack.scoring.dimensions.map((d) => d.id);
 
   // 这是公开页，付费正文不能整段出现，否则等于绕开付费墙
   const view = freeView(doc, pack.paywall);
@@ -122,13 +120,14 @@ export default async function TypePage({
 
         <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
           <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} compact />
-          <Link className="btn btn-block" href={`/t/${slug}/quiz`}>开始测试，看看我的类型</Link>
-
 
           <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
-            <SectionHead icon="layers" title={`${doc.code} 这四个字母的意思`} hint="深色一端就是这个类型所在的那边" />
-            <TypeSpectrum dimensions={pack.scoring.dimensions} code={code} codeOrder={order} />
-            {/* 光谱轴说的是落在哪一边，这张图说的是四个字母怎么拼出来 */}
+            <SectionHead
+              icon="layers"
+              title={`${doc.code} 这四个字母的意思`}
+              hint="深色的一端就是这个类型所在的那边。示意位置，不代表你的实际作答。"
+            />
+            {/* 这里不放光谱轴：这一页没有任何一次作答，画出圆点会被读成分数 */}
             <LetterBreakdown code={doc.code} />
           </section>
 
@@ -160,25 +159,17 @@ export default async function TypePage({
                 </p>
               </div>
             </SceneSectionHeading>
-            <p className="wrap" style={{ margin: 0 }}>
+            <div className="type-links">
               {doc.withOthers.map((item) => {
                 const other = pack.results[item.code];
                 return (
-                  <Link
-                    key={item.code}
-                    href={`/t/${slug}/type/${item.code}`}
-                    className="chip"
-                    style={{
-                      background: "var(--accent-soft)",
-                      color: "var(--accent-strong)",
-                      textDecoration: "none",
-                    }}
-                  >
-                    {item.code} {other?.name ?? ""}
+                  <Link key={item.code} href={`/t/${slug}/type/${item.code}`} className="type-link">
+                    <b>{item.code}</b>
+                    <span>{other?.name ?? ""}</span>
                   </Link>
                 );
               })}
-            </p>
+            </div>
           </section>
 
           <Faq items={pack.meta.seo.faq} />

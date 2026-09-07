@@ -67,35 +67,60 @@
   "home": {
     "eyebrow": "16型人格 · 自我探索手记",
     "title": "原来，我是这样的人。",
-    "description": "从日常的小选择，读懂自己的习惯、精力与相处方式。",
-    "exploreTitle": "把自己，慢慢看清楚",
-    "exploreHint": "关于精力、选择，还有下一步。"
-  },
-  "intro": {
-    "eyebrow": "一次与自己的轻松对话",
-    "dimensionsTitle": "四个角度，看见你的日常",
-    "dimensionsHint": "两端都是自然的偏好，看看自己更靠近哪边。",
-    "typesTitle": "不同组合，各有自己的样子",
-    "typesHint": "点开一种类型，先读一段关于它的描述。",
-    "benefitsTitle": "不止认识四个字母",
-    "benefits": [
+    "description": "日常情境题，看清你从哪里补充精力、怎么接收信息、凭什么下判断。",
+    "startHint": "不用注册，免费查看类型与四维倾向",
+    "getsTitle": "测完你会拿到什么",
+    "getsHint": "一张能存下来的类型卡，和四条真实的维度位置。",
+    "gets": [
       {
-        "title": "看见你的倾向",
-        "description": "免费查看类型码、关键词和四条维度轴的位置。",
-        "scene": "discovery"
+        "title": "一张类型卡",
+        "description": "类型码、名字、三个关键词，长按就能存进相册。"
       },
       {
-        "title": "理解你的日常",
-        "description": "从性格描述的开头，看看熟悉的选择和习惯。",
+        "title": "四条维度位置",
+        "description": "不是分数，是你落在两极之间的哪一点。"
+      }
+    ],
+    "anglesTitle": "四个角度，看见你的日常",
+    "anglesHint": "两端都是自然的偏好，没有更好的一边。",
+    "angles": [
+      {
+        "axis": "E ↔ I",
+        "title": "精力从哪来",
+        "description": "独处或交流，你通常怎样恢复精力？",
         "scene": "energy"
       },
       {
-        "title": "探索更多可能",
-        "description": "深度报告继续解读工作、相处与成长，可按需解锁。",
-        "scene": "growth"
+        "axis": "S ↔ N",
+        "title": "信息怎么接",
+        "description": "先看见细节，还是先看见可能。",
+        "scene": "information"
+      },
+      {
+        "axis": "T ↔ F",
+        "title": "判断靠什么",
+        "description": "权衡逻辑，也体会感受。",
+        "scene": "decisions"
+      },
+      {
+        "axis": "J ↔ P",
+        "title": "节奏怎么定",
+        "description": "确定的节奏，还是灵活的空间。",
+        "scene": "rhythm"
       }
     ],
-    "startHint": "不用注册，免费查看类型与四维倾向"
+    "lettersCta": "四个字母是怎么来的 →"
+  },
+  "intro": {
+    "eyebrow": "一次与自己的轻松对话",
+    "dimensionsTitle": "测的是四条轴上的位置",
+    "dimensionsHint": "不是打分。两端都标出来，你落在中间某一点。",
+    "dimensionsFootnote": "刻度只说明这条轴的两端。做完题之后，你会在每条轴上得到一个真实的点。",
+    "lettersTitle": "四个字母是怎么拼出来的",
+    "lettersHint": "每条轴各取一边，四条轴拼成一个类型码。以 {code} 为例：",
+    "lettersFootnote": "2 × 2 × 2 × 2 = 16 种组合。字母只说明你偏向哪边，不说明偏多少——偏多少看上面那四条轴。",
+    "typesTitle": "不同组合，各有自己的样子",
+    "typesHint": "横向是「信息怎么接 × 判断靠什么」，纵向是「精力从哪来 × 节奏怎么定」。"
   },
   "quiz": {
     "hint": "跟着日常的自己选，没有标准答案。"
@@ -106,12 +131,6 @@
   },
   "placements": {
     "homeHero": "discovery",
-    "homeTest": "information",
-    "homeBenefits": [
-      "energy",
-      "decisions",
-      "growth"
-    ],
     "introHero": "discovery",
     "quiz": "discovery",
     "typeIndex": "relationships",

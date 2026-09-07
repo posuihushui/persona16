@@ -22,6 +22,7 @@ export function TypePoster({
   heading = false,
   summary,
   host,
+  stamp,
 }: {
   code: string;
   doc: Pick<ResultDoc, "name" | "label" | "keywords">;
@@ -32,6 +33,8 @@ export function TypePoster({
   summary?: string;
   /** 截图外发时的来源标记，传 siteUrl() 的 host */
   host?: string;
+  /** 压在几何左上角的品牌套印。截图外发时告诉别人这张卡出自哪里 */
+  stamp?: string;
 }) {
   const tone = toneFor(code);
 
@@ -49,12 +52,16 @@ export function TypePoster({
     >
       <div className="poster-art">
         <TypeArt code={code} fluid />
+        {stamp && <span className="poster-stamp">{stamp}</span>}
       </div>
 
       <div className="poster-body">
         <p className="poster-eyebrow">{testName}</p>
-        {heading ? <h1 className="poster-code">{code}</h1> : <p className="poster-code">{code}</p>}
-        <p className="poster-name">{doc.name}</p>
+        {/* 类型码与类型名同一条基线：截图里它们是一个整体，不是两行 */}
+        <div className="poster-headline">
+          {heading ? <h1 className="poster-code">{code}</h1> : <p className="poster-code">{code}</p>}
+          <p className="poster-name">{doc.name}</p>
+        </div>
         <hr className="poster-rule" />
         <p className="poster-label">{doc.label}</p>
         <p className="wrap poster-chips">

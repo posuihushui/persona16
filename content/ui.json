@@ -6,7 +6,9 @@
     "atBest": "你最舒服的状态",
     "atWorst": "你最容易累的状态",
     "versionNote": "这份结果使用 {version} 版内容，题库更新后仍保留当时的解读。",
-    "remainingNote": "还有 {count} 字完整描述，可在深度报告中查看。"
+    "remainingNote": "还有 {count} 字完整描述，可在深度报告中查看。",
+    "axesSummary": "四条轴合起来",
+    "posterEyebrow": "我的类型"
   },
   "spectrum": {
     "strong": "偏好明显",

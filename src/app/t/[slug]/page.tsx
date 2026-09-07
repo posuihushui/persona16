@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Faq } from "@/components/Faq";
-import { Icon, SectionHead } from "@/components/Icon";
+import { SectionHead } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
 import { LetterBreakdown } from "@/components/LetterBreakdown";
 import { DimensionAxes } from "@/components/Spectrum";
-import { SceneIllustration, illustrationFor } from "@/components/SceneIllustration";
+import { SceneIllustration } from "@/components/SceneIllustration";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TrackView } from "@/components/TrackView";
@@ -93,62 +93,31 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
             </div>
           </section>
 
-          <div className="facts">
-            <span className="fact">
-              <Icon name="list" size={20} />
-              <b>{pack.meta.questionCount}</b>
-              <span>道题</span>
-            </span>
-            <span className="fact">
-              <Icon name="clock" size={20} />
-              <b>{pack.meta.estimatedMinutes}</b>
-              <span>分钟</span>
-            </span>
-            <span className="fact">
-              <Icon name="check" size={20} />
-              <b>免费</b>
-              <span>出结果</span>
-            </span>
-          </div>
-
           <Link className="btn btn-block" href={`/t/${slug}/quiz`}>
             开始测试
           </Link>
 
-          <p className="small muted" style={{ margin: 0, textAlign: "center" }}>
-            {illustrations.intro.startHint}
-          </p>
-
-          {/* 图形优先：四条轴一眼看懂这个测试在量什么 */}
-          <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
-            <SectionHead icon="layers" title={illustrations.intro.dimensionsTitle} hint={illustrations.intro.dimensionsHint} />
-            <div className="dimension-scene-grid">
-              {pack.scoring.dimensions.map((dimension) => {
-                const scene = illustrations.dimensions[dimension.id as keyof typeof illustrations.dimensions];
-                const asset = scene ? illustrationFor(scene) : null;
-                if (!asset) return null;
-                return (
-                  <article key={dimension.id} className="dimension-scene">
-                    <SceneIllustration scene={scene} className="dimension-scene-art" />
-                    <h3 className="h3">{dimension.name}</h3>
-                    <p className="small muted">{asset.description}</p>
-                  </article>
-                );
-              })}
-            </div>
+          {/* 四条轴只讲刻度：这个测试量的是位置，不是分数 */}
+          <section className="card stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>
+            <SectionHead
+              icon="layers"
+              title={illustrations.intro.dimensionsTitle}
+              hint={illustrations.intro.dimensionsHint}
+            />
             <DimensionAxes dimensions={pack.scoring.dimensions} compact />
+            <p className="spectrum-footnote">{illustrations.intro.dimensionsFootnote}</p>
           </section>
 
           {/* 光谱轴说的是「偏多少」，这一块说的是「四个字母怎么拼出来」 */}
           <section className="card stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>
             <SectionHead
               icon="layers"
-              title="四个字母是怎么来的"
-              hint={`每条轴各取一边，四条轴拼成一个类型码。下面以 ${SAMPLE_CODE} 为例。`}
+              title={illustrations.intro.lettersTitle}
+              hint={illustrations.intro.lettersHint.replace("{code}", SAMPLE_CODE)}
             />
             <LetterBreakdown code={SAMPLE_CODE} numbered showResult />
             <p className="small muted" style={{ margin: 0 }}>
-              2 × 2 × 2 × 2 = 16 种组合，也就是下面这 16 个类型。
+              {illustrations.intro.lettersFootnote}
             </p>
           </section>
 
@@ -159,21 +128,6 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
             <Link className="btn btn-ghost btn-block" href={`/t/${slug}/type`}>
               看全部 16 种的完整解读
             </Link>
-          </section>
-
-          <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
-            <SectionHead icon="spark" title={illustrations.intro.benefitsTitle} />
-            <div className="scene-card-grid">
-              {illustrations.intro.benefits.map((benefit) => (
-                <article className="scene-card" key={benefit.title}>
-                  <SceneIllustration scene={benefit.scene} className="scene-card-art" />
-                  <div className="scene-card-body stack" style={{ "--stack-gap": "0.375rem" } as React.CSSProperties}>
-                    <h3 className="h3">{benefit.title}</h3>
-                    <p className="small muted" style={{ margin: 0 }}>{benefit.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
           </section>
 
           {/* 长文本折叠，但仍在 HTML 里，抓取器读得到 */}

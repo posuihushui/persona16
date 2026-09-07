@@ -35,34 +35,78 @@ function describe(position: number): string {
   return ui.spectrum.balanced;
 }
 
-function SpectrumRows({ rows, showNote }: { rows: Row[]; showNote: boolean }) {
+/**
+ * 一条轴的三段式：轴名 + 强度标签在上，字母与百分比在两端，中间是轨道。
+ *
+ * 强度标签放在右上而不是图下面，是因为用户扫这一块时先看轴名再看强度，
+ * 两者在同一行读起来是一句话。百分比跟着字母走，图和数字不用来回对。
+ * 轨道从中线填到命中的那一侧：填充长度本身就是「偏了多少」。
+ */
+function SpectrumRows({
+  rows,
+  showNote,
+  summaryLabel,
+}: {
+  rows: Row[];
+  showNote: boolean;
+  /** 传了就在末尾补一条「四条轴合起来」的字母条 */
+  summaryLabel?: string;
+}) {
+  // 只有真实作答那条轴要收窄两端并显示百分比；类型页那条仍用两端的中文名
+  const scored = rows.some((row) => row.actual);
+
   return (
-    <div className="spectrum">
-      {rows.map((row) => (
-        <div key={row.id} className="spectrum-item">
-          <div className="spectrum-line">
-            <span className={`spectrum-end${row.hit === "left" ? " is-hit" : ""}`}>
-              <b>{row.leftPole}</b>
-              {row.leftName}
-            </span>
-            <span className="spectrum-track" aria-hidden="true">
-              <span className="spectrum-mid" aria-hidden="true" />
-              {!row.missing && <span className="spectrum-dot" style={{ left: `${row.position}%` }} />}
-            </span>
-            <span className={`spectrum-end${row.hit === "right" ? " is-hit" : ""}`}>
-              <b>{row.rightPole}</b>
-              {row.rightName}
-            </span>
+    <div className={`spectrum${scored ? " spectrum--score" : ""}`}>
+      {rows.map((row) => {
+        const right = Math.round(row.position);
+        const hitRight = row.hit === "right";
+        // 命中侧从中线填起，填充长度就是偏离中点的幅度
+        const fill = hitRight
+          ? { left: "50%", right: `${100 - right}%` }
+          : { left: `${right}%`, right: "50%" };
+        const withPercent = row.actual && !row.missing;
+
+        return (
+          <div key={row.id} className="spectrum-item">
+            <p className="spectrum-axis-head">
+              <span>{row.name}</span>
+              <span className="spectrum-strength">
+                {row.missing ? ui.spectrum.missing : row.actual ? describe(row.position) : ui.spectrum.typical}
+              </span>
+            </p>
+            <div className="spectrum-line">
+              <span className={`spectrum-end${hitRight ? "" : " is-hit"}`}>
+                <b>{row.leftPole}</b>
+                <span className="spectrum-pct">{withPercent ? `${100 - right}%` : row.leftName}</span>
+              </span>
+              <span className="spectrum-track" aria-hidden="true">
+                <span className="spectrum-mid" aria-hidden="true" />
+                {!row.missing && <span className="spectrum-fill" style={fill} />}
+                {!row.missing && <span className="spectrum-dot" style={{ left: `${row.position}%` }} />}
+              </span>
+              <span className={`spectrum-end${hitRight ? " is-hit" : ""}`}>
+                <b>{row.rightPole}</b>
+                <span className="spectrum-pct">{withPercent ? `${right}%` : row.rightName}</span>
+              </span>
+            </div>
+            {showNote && row.note && <p className="spectrum-note">{row.note}</p>}
           </div>
-          <p className="spectrum-caption">
-            {row.name} · {row.missing ? ui.spectrum.missing : row.actual ? describe(row.position) : ui.spectrum.typical}
-            {row.actual && !row.missing && <span className="spectrum-values">{ui.spectrum.position
-              .replace("{left}", row.leftPole).replace("{leftPercent}", String(Math.round((100 - row.position) * 10) / 10))
-              .replace("{right}", row.rightPole).replace("{rightPercent}", String(Math.round(row.position * 10) / 10))}</span>}
-          </p>
-          {showNote && row.note && <p className="spectrum-note">{row.note}</p>}
+        );
+      })}
+
+      {summaryLabel && (
+        <div className="letters-result letters-result--compact">
+          <span className="letters-result-label">{summaryLabel}</span>
+          <span className="letters-result-code">
+            {rows.map((row) => (
+              <span key={row.id}>
+                <b>{row.hit === "left" ? row.leftPole : row.rightPole}</b>
+                <span>{row.hit === "left" ? row.leftName : row.rightName}</span>
+              </span>
+            ))}
+          </span>
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -103,9 +147,12 @@ function toRows(
 export function ScoreSpectrum({
   dimensions,
   scores,
+  summaryLabel,
 }: {
   dimensions: Dimension[];
   scores: DimensionScore[];
+  /** 四条轴读完之后，把命中的四个字母再拼一次 */
+  summaryLabel?: string;
 }) {
   const rows = toRows(dimensions, (dim) => {
     const score = scores.find((s) => s.id === dim.id);
@@ -114,7 +161,7 @@ export function ScoreSpectrum({
     return { position, note: score?.poleSummary, pole: score?.pole, actual: true, missing: !score };
   });
 
-  return <SpectrumRows rows={rows} showNote />;
+  return <SpectrumRows rows={rows} showNote summaryLabel={summaryLabel} />;
 }
 
 /** 某个类型的典型位置。类型页用，不涉及任何一次具体作答。 */
@@ -158,8 +205,10 @@ export function DimensionAxes({
         if (!right) return null;
         return (
           <div key={dim.id} className="spectrum-item">
-            <p className="spectrum-caption" style={{ margin: "0 0 0.375rem" }}>
-              {dim.name}
+            {/* 轴名在左，两端字母的缩写在右。缩写让用户把这条轴和类型码对上 */}
+            <p className="spectrum-axis-head">
+              <span>{dim.name}</span>
+              <span>{left}{right}</span>
             </p>
             <div className="spectrum-line">
               <span className="spectrum-end is-hit">

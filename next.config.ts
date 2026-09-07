@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // 站点部署在国内服务器，输出 standalone 便于容器化上线。
-  output: "standalone",
+  // Vercel 自己会做产物追踪，standalone 会让它找不到 next-server.js.nft.json，
+  // 所以只在非 Vercel 的构建里开启。
+  output: process.env.VERCEL ? undefined : "standalone",
   poweredByHeader: false,
   // 关掉 Next 自动写 AGENTS.md：macOS 文件系统大小写不敏感，
   // 它会覆盖本仓库自己的 agents.md 约定文件。

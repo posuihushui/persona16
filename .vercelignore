@@ -1,0 +1,7 @@
+# 本地环境变量不要跟着源码上传。Vercel 的环境变量在项目设置里配。
+.env
+.env.*
+!.env.example
+
+.next
+node_modules
