@@ -90,7 +90,7 @@ const CSS_FEATURES = [
 /** React 内联样式里的逻辑属性和 flex gap，这两类不会被构建期降级。 */
 const INLINE_STYLE_FEATURES = [
   [/paddingBlock|marginBlock|paddingInline|marginInline|insetBlock|insetInline/, "逻辑属性需要 Chrome 87，改用 paddingTop/paddingBottom 这类物理属性"],
-  [/display:\s*"flex"[^}]*\bgap:/, "内联的 flex gap 需要 Chrome 84 / iOS 14.5，改用 .row 或 .wrap 类，它们带 @supports 回退"],
+  [/display:\s*"flex"[^}]*\bgap:/, "内联的 flex gap 需要 Chrome 84 / iOS 14.5，改用 .row 或 .wrap 类，它们始终使用 margin 间距"],
 ];
 
 /** 运行时特性。已在 LegacyPolyfills 里补的记为 warn，其余 block。 */
@@ -139,7 +139,7 @@ function scanSources() {
       if (isCss) {
         for (const [re, since, level] of CSS_FEATURES) {
           if (!re.test(line)) continue;
-          // globals.css 里的 gap 已经包在 @supports 里，其余按规则报
+          // grid gap 在兼容基线内；flex 容器间距另行检查
           const msg = `${at} 使用了 ${since} 才支持的 CSS：${line.trim().slice(0, 70)}`;
           if (level === "block") fail(msg);
           else warn(msg);
@@ -237,8 +237,11 @@ function checkRequiredBits() {
 
   const css = path.join(ROOT, "src", "app", "globals.css");
   const cssText = fs.existsSync(css) ? fs.readFileSync(css, "utf8") : "";
-  if (cssText.includes("@supports (gap")) ok("flex gap 有 @supports 回退");
-  else fail("globals.css 缺少 flex gap 的 @supports 回退");
+  const cleanCss = stripCssComments(cssText);
+  const rowMargin = /\.row\s*>\s*\*\s*\+\s*\*\s*\{[^}]*margin-left:\s*var\(--row-gap/.test(cleanCss);
+  const wrapMargin = /\.wrap\s*>\s*\*\s*\{[^}]*margin:\s*calc\(var\(--wrap-gap/.test(cleanCss);
+  if (rowMargin && wrapMargin && !/@supports\s*\(gap\s*:/.test(cleanCss)) ok("flex 布局始终保留 margin 间距");
+  else fail("row/wrap 必须保留 margin；不能用 grid gap 的支持情况判定 flex gap");
   if (cssText.includes("safe-area-inset")) ok("安全区变量已定义");
   else fail("globals.css 缺少 safe-area-inset 处理");
 

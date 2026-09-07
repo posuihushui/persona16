@@ -99,6 +99,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   // 只允许跳回本站，避免开放重定向
   const redirect = new URL(req.url).searchParams.get("redirect");
   if (redirect) {
+    // 本地模拟返回保留当前浏览器域名，不使用可能已被规范化的 req.url。
+    // 严格限制为报告路径，拒绝协议相对 URL、反斜杠和外站跳转。
+    if (/^\/r\/[a-zA-Z0-9_-]+\/report$/.test(redirect)) {
+      return new Response(null, { status: 303, headers: { location: redirect } });
+    }
     const target = new URL(redirect, req.url);
     const allowed = new Set([new URL(req.url).origin]);
     if (process.env.NEXT_PUBLIC_SITE_URL) {

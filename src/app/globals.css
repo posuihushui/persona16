@@ -221,7 +221,7 @@ a,
 /*
  * 横向排列。flex 的 gap 要 Chrome 84 / iOS 14.5，低于这个版本的内核
  * 会把间距全部丢掉，元素挤成一团。所以默认用 margin，
- * 支持 gap 的内核再切回 gap。
+ * grid 支持 gap 不代表 flex 支持，因此始终保留 margin 间距。
  */
 .row {
   display: flex;
@@ -253,25 +253,6 @@ a,
 
 .wrap > * {
   margin: calc(var(--wrap-gap, 0.5rem) / 2);
-}
-
-@supports (gap: 1px) {
-  .row {
-    gap: var(--row-gap, 0.5rem);
-  }
-
-  .row > * + * {
-    margin-left: 0;
-  }
-
-  .wrap {
-    margin: 0;
-    gap: var(--wrap-gap, 0.5rem);
-  }
-
-  .wrap > * {
-    margin: 0;
-  }
 }
 
 /* ============ 排版 ============ */
@@ -1378,3 +1359,88 @@ nav a,
   line-height: 1.6;
   color: var(--ink-500);
 }
+
+/* ============ 结果、分享与恢复状态 ============ */
+.result-page {
+  padding-top: calc(1rem + var(--safe-top));
+  padding-bottom: calc(2rem + var(--safe-bottom));
+}
+
+.poster--compact .poster-art {
+  width: 10rem;
+  margin: 1rem auto 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.poster--compact .poster-body {
+  padding: 1rem 1.375rem 1.25rem;
+}
+
+.poster--compact .poster-eyebrow { margin-bottom: 0.625rem; }
+.poster--compact .poster-rule { margin: 0.75rem 0; }
+.poster--compact .poster-chips { margin-top: 0.75rem; }
+.poster--compact .poster-label { font-size: var(--step-0); }
+
+.share-panel { --stack-gap: 0.625rem; }
+.share-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.625rem;
+}
+.share-actions .btn { padding: 0.625rem 0.5rem; }
+.share-text-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.5rem 0;
+  color: var(--accent-strong);
+  font-size: var(--step--1);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.share-panel [role="status"]:empty { display: none; }
+.share-preview {
+  padding: 1rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.share-preview img { width: 100%; border-radius: var(--radius-sm); }
+.share-url { margin-top: 0.75rem; letter-spacing: normal; }
+.spectrum-values { display: block; font-variant-numeric: tabular-nums; color: var(--ink-700); }
+.spectrum-caption, .spectrum-end { color: var(--ink-500); }
+.quiz-resume, .quiz-error {
+  padding: 1rem;
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.quiz-resume-actions { display: flex; flex-wrap: wrap; margin-top: 0.5rem; }
+.quiz-resume-actions > * { margin: 0.25rem 0.5rem 0 0; }
+.quiz-save-warning { color: var(--ink-500); font-size: var(--step--1); }
+.quiz-back { min-height: 3rem; color: var(--ink-500); }
+.quiz-status { color: var(--ink-500); }
+.quiz-error .btn { margin-top: 0.75rem; }
+.quiz-error p { font-size: var(--step--1); }
+button, a, input, summary { touch-action: manipulation; }
+button:focus, a:focus, input:focus, summary:focus {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
+}
+button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not(:focus-visible) {
+  outline: none;
+}
+.quiz-question:focus { outline: none; }
+
+@media (max-width: 359px) {
+  .poster--compact .poster-art { width: 8.5rem; }
+  .poster--compact .poster-body { padding: 0.875rem 1rem 1rem; }
+  .share-actions { grid-template-columns: minmax(0, 1fr); }
+  .quiz { gap: 1rem; }
+  .quiz-question { font-size: var(--step-1); min-height: 3.25rem; margin-bottom: 1rem; }
+  .quiz-options { gap: 0.5rem; }
+}
+.checkout-details { margin-top: 0.75rem; }
+.checkout-details summary { min-height: 3rem; padding: 0.625rem 0; color: var(--accent-strong); font-size: var(--step--1); cursor: pointer; }

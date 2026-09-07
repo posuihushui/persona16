@@ -33,11 +33,11 @@ export async function POST(req: Request) {
 
   const attempt = await prisma.attempt.findFirst({
     where: { id: attemptId, deletedAt: null },
-    select: { id: true, slug: true },
+    select: { id: true, slug: true, packVersion: true },
   });
   if (!attempt) return NextResponse.json({ error: "结果不存在" }, { status: 404 });
 
-  const pack = loadPack(attempt.slug);
+  const pack = loadPack(attempt.slug, attempt.packVersion);
   const sessionKey = await ensureSessionKey();
   const openId = await readOpenId();
   const scene = detectScene(req.headers.get("user-agent"));
@@ -107,7 +107,9 @@ export async function POST(req: Request) {
       currency: order.currency,
       description: `${pack.meta.name} - ${pack.paywall.productName}`,
       notifyUrl: process.env.WECHAT_PAY_NOTIFY_URL ?? `${siteUrl()}/api/pay/notify/${provider.id}`,
-      returnUrl: `${siteUrl()}/r/${attemptId}/report`,
+      // Next 开发服务器可能将 req.url 的主机名规范化为 localhost。
+      // mock 使用相对地址，保留浏览器原域名上的匿名身份 Cookie。
+      returnUrl: `${provider.id === "mock" ? "" : siteUrl()}/r/${attemptId}/report`,
       scene,
       openId: openId ?? undefined,
       clientIp,

@@ -14,16 +14,20 @@ export function TypePoster({
   code,
   doc,
   testName,
+  compact = false,
+  heading = false,
 }: {
   code: string;
-  doc: ResultDoc;
+  doc: Pick<ResultDoc, "name" | "label" | "keywords">;
   testName: string;
+  compact?: boolean;
+  heading?: boolean;
 }) {
   const tone = toneFor(code);
 
   return (
     <article
-      className="poster"
+      className={`poster${compact ? " poster--compact" : ""}`}
       style={
         {
           "--poster-bg": tone.card,
@@ -37,7 +41,7 @@ export function TypePoster({
 
       <div className="poster-body">
         <p className="poster-eyebrow">{testName}</p>
-        <p className="poster-code">{code}</p>
+        {heading ? <h1 className="poster-code">{code}</h1> : <p className="poster-code">{code}</p>}
         <p className="poster-name">{doc.name}</p>
         <hr className="poster-rule" />
         <p className="poster-label">{doc.label}</p>

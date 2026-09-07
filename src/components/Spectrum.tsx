@@ -1,3 +1,4 @@
+import ui from "../../content/ui.json";
 import type { Dimension, DimensionScore } from "@/lib/types";
 
 /**
@@ -22,14 +23,16 @@ type Row = {
   /** 命中的是哪一极 */
   hit: "left" | "right";
   note?: string;
+  actual?: boolean;
+  missing?: boolean;
 };
 
 function describe(position: number): string {
   const strength = Math.abs(position - 50) * 2;
-  if (strength >= 50) return "很明显";
-  if (strength >= 24) return "比较清楚";
-  if (strength >= 10) return "略微偏向";
-  return "两边差不多";
+  if (strength >= 50) return ui.spectrum.strong;
+  if (strength >= 24) return ui.spectrum.clear;
+  if (strength >= 10) return ui.spectrum.slight;
+  return ui.spectrum.balanced;
 }
 
 function SpectrumRows({ rows, showNote }: { rows: Row[]; showNote: boolean }) {
@@ -42,9 +45,9 @@ function SpectrumRows({ rows, showNote }: { rows: Row[]; showNote: boolean }) {
               <b>{row.leftPole}</b>
               {row.leftName}
             </span>
-            <span className="spectrum-track">
+            <span className="spectrum-track" aria-hidden="true">
               <span className="spectrum-mid" aria-hidden="true" />
-              <span className="spectrum-dot" style={{ left: `${row.position}%` }} />
+              {!row.missing && <span className="spectrum-dot" style={{ left: `${row.position}%` }} />}
             </span>
             <span className={`spectrum-end${row.hit === "right" ? " is-hit" : ""}`}>
               <b>{row.rightPole}</b>
@@ -52,7 +55,10 @@ function SpectrumRows({ rows, showNote }: { rows: Row[]; showNote: boolean }) {
             </span>
           </div>
           <p className="spectrum-caption">
-            {row.name} · {describe(row.position)}
+            {row.name} · {row.missing ? ui.spectrum.missing : row.actual ? describe(row.position) : ui.spectrum.typical}
+            {row.actual && !row.missing && <span className="spectrum-values">{ui.spectrum.position
+              .replace("{left}", row.leftPole).replace("{leftPercent}", String(Math.round((100 - row.position) * 10) / 10))
+              .replace("{right}", row.rightPole).replace("{rightPercent}", String(Math.round(row.position * 10) / 10))}</span>}
           </p>
           {showNote && row.note && <p className="spectrum-note">{row.note}</p>}
         </div>
@@ -63,7 +69,7 @@ function SpectrumRows({ rows, showNote }: { rows: Row[]; showNote: boolean }) {
 
 function toRows(
   dimensions: Dimension[],
-  resolve: (dim: Dimension) => { position: number; note?: string; pole?: string },
+  resolve: (dim: Dimension) => { position: number; note?: string; pole?: string; actual?: boolean; missing?: boolean },
 ): Row[] {
   return dimensions.flatMap((dim) => {
     const poleIds = Object.keys(dim.poles);
@@ -72,7 +78,7 @@ function toRows(
     const right = poleIds.find((p) => p !== left);
     if (!right) return [];
 
-    const { position, note, pole } = resolve(dim);
+    const { position, note, pole, actual, missing } = resolve(dim);
     // 正好落在中点时，位置判断不出方向，以计分引擎给出的极为准
     const hit = pole ? (pole === left ? "left" : "right") : position <= 50 ? "left" : "right";
     return [
@@ -86,6 +92,8 @@ function toRows(
         position,
         hit: hit as "left" | "right",
         note,
+        actual,
+        missing,
       },
     ];
   });
@@ -103,7 +111,7 @@ export function ScoreSpectrum({
     const score = scores.find((s) => s.id === dim.id);
     // percent 越大越偏向 positivePole，而 positivePole 画在左边，所以要翻过来
     const position = score ? 100 - score.percent : 50;
-    return { position, note: score?.poleSummary, pole: score?.pole };
+    return { position, note: score?.poleSummary, pole: score?.pole, actual: true, missing: !score };
   });
 
   return <SpectrumRows rows={rows} showNote />;

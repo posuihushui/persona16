@@ -1,0 +1,65 @@
+{
+  "result": {
+    "axesTitle": "你的四个偏好位置",
+    "axesHint": "两端没有好坏，点的位置来自这次作答。",
+    "coreTitle": "你大概是这样一个人",
+    "atBest": "你最舒服的状态",
+    "atWorst": "你最容易累的状态",
+    "versionNote": "这份结果使用 {version} 版内容，题库更新后仍保留当时的解读。",
+    "remainingNote": "还有 {count} 字完整描述，可在深度报告中查看。"
+  },
+  "spectrum": {
+    "strong": "偏好明显",
+    "clear": "偏好比较清楚",
+    "slight": "略微偏向",
+    "balanced": "两边接近",
+    "position": "{left} {leftPercent}% · {right} {rightPercent}%",
+    "typical": "示意位置，不代表你的实际作答",
+    "missing": "这条维度暂未记录"
+  },
+  "share": {
+    "title": "把这一面，分享给朋友",
+    "hint": "存一张卡片，也可以发链接聊聊彼此。",
+    "privacy": "卡片和链接只展示类型，不包含你的作答、个人维度位置或付费报告。",
+    "cardHint": "长按图片保存，再从相册发给朋友或朋友圈。",
+    "cardAlt": "{code} 类型分享卡",
+    "cardError": "卡片暂时没生成成功，可以重试，或截图上面的类型卡。",
+    "copyFallback": "自动复制未成功，长按选中下面的链接即可复制。",
+    "copied": "类型链接已复制，可以发给朋友了。",
+    "nativeError": "暂时无法打开系统分享，可以复制链接或保存卡片。",
+    "wechatHint": "微信里可以长按保存卡片，再从相册发到聊天或朋友圈。",
+    "douyinHint": "抖音里可以先保存卡片；如果无法保存，点右上角菜单，在浏览器打开后继续。"
+  },
+  "checkout": {
+    "subtitle": "完整描述和深度解读，一次购买后可凭订单查询码找回。",
+    "countdown": "优惠还剩 {time}，到期后恢复原价",
+    "shareOffer": "分享类型链接，领取 {hours} 小时内可用的 {off} 折优惠",
+    "shareHint": "分享只影响价格，类型、关键词和四维位置始终免费。",
+    "claimError": "优惠暂时没领到，可以重试。",
+    "paymentConfirming": "正在向服务端确认支付结果…",
+    "paymentConfirmed": "支付已确认，正在打开报告…",
+    "paymentPending": "暂时还没确认支付结果",
+    "paymentPendingHint": "如果已经付款，请稍后刷新确认，或通过订单查询码找回报告。",
+    "bridgeUnavailable": "微信支付组件还没准备好",
+    "bridgeHint": "请稍后再试，或从右上角菜单选择在浏览器打开。",
+    "paymentCancelled": "已取消支付，你的结果仍然保留。",
+    "paymentIncomplete": "支付未完成",
+    "paymentRetry": "可以再试一次；如果已经付款，请先刷新确认或找回报告。",
+    "orderError": "暂时没能创建订单，请重试。",
+    "retrieveHint": "已付款但没看到报告？可以用订单查询码找回。"
+  },
+  "quiz": {
+    "firstHint": "按平时的自己选，不用纠结哪一个更好。",
+    "resumeTitle": "上次的进度还在",
+    "resumeHint": "已完成 {count} / {total} 题，可以接着答。",
+    "restartHint": "重新开始会清除这台设备上本次测试的答题进度。",
+    "storageWarning": "这个浏览器暂时无法保存进度，建议这次连续完成。",
+    "invalidProgress": "上次的进度无法完整恢复，已回到需要作答的位置。",
+    "versionChanged": "题库已更新，这次将从新版第一题开始。",
+    "submitting": "正在整理你的结果…",
+    "submitError": "暂时没能提交成功。答案还在，检查网络后可以再试一次。",
+    "submitTimeout": "等待有点久。答案还在，可以检查网络后重新提交。",
+    "submitVersionChanged": "题库刚刚更新，请刷新页面后重新作答。",
+    "completed": "已经答完，准备查看你的结果。"
+  }
+}

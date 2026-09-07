@@ -30,11 +30,11 @@ export async function POST(req: Request) {
 
   const attempt = await prisma.attempt.findFirst({
     where: { id: attemptId, deletedAt: null },
-    select: { id: true, slug: true },
+    select: { id: true, slug: true, packVersion: true },
   });
   if (!attempt) return NextResponse.json({ error: "结果不存在" }, { status: 404 });
 
-  const pack = loadPack(attempt.slug);
+  const pack = loadPack(attempt.slug, attempt.packVersion);
   if (!pack.paywall.discount) {
     return NextResponse.json({ error: "当前没有可领的优惠" }, { status: 409 });
   }

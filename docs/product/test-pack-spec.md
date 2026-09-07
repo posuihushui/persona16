@@ -20,6 +20,12 @@ content/tests/<slug>/
 
 内容包一经发布即冻结。修订题目、权重或结果映射必须升 minor 版本,只改文案错别字升 patch 版本。每次作答会记录当时的 `version`,历史结果永远按记录的版本渲染,不随最新内容包变化。这保证用户三个月后回来看到的报告和当初截图的一致。
 
+当前版本仍在测试根目录。发布新版本前，将旧版的四个 JSON 和 `results/` 完整复制到 `versions/<旧版本号>/`，不要把 `versions/` 自身复制进去。归档和新版本必须一起部署，旧归档不得删除或修改。`check:content` 同时检查当前目录与所有归档。
+
+`loadPack(slug, version)` 按精确版本读取，缺少归档或版本不匹配时失败，不静默使用新版。个人结果、报告、报价及卡片使用 `Attempt.packVersion`；公开类型页使用当前版本。提交必须携带页面的 `packVersion`，题库已更新时返回 409，避免用新版规则解释旧版答案。
+
+跨测试共用的进度、分享和支付提示集中在 `content/ui.json`，不属于已冻结的测评正文；修改这些提示不改变题库版本。
+
 ## meta.json
 
 | 字段 | 类型 | 说明 |
@@ -157,9 +163,9 @@ content/tests/<slug>/
 | `name` | string | 免费 | 类型名 |
 | `label` | string | 免费 | 一句人设标签,进分享卡 |
 | `keywords` | string[] | 免费 | 三个关键词 |
-| `core` | string | 免费 | 核心性格描述 |
-| `atBest` | string | 免费 | 最舒服的状态 |
-| `atWorst` | string | 免费 | 最容易累的状态 |
+| `core` | string | 付费，免费仅给预览 | 核心性格描述 |
+| `atBest` | string | 付费 | 最舒服的状态 |
+| `atWorst` | string | 付费 | 最容易累的状态 |
 | `cognition` | string | 付费 | 认知偏好拆解 |
 | `strengths` | string[] | 付费 | 五条优势 |
 | `blindSpots` | `{point, action}[]` | 付费 | 五条盲点,每条配一个具体改善动作 |

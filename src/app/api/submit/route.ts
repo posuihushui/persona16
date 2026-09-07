@@ -10,6 +10,7 @@ export const runtime = "nodejs";
 
 const bodySchema = z.object({
   slug: z.string().min(1).max(64),
+  packVersion: z.string().regex(/^\d+\.\d+\.\d+$/).optional(),
   answers: z.record(z.string(), z.number().int().min(-10).max(10)),
   source: z.string().max(64).optional(),
 });
@@ -19,13 +20,21 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "参数不合法" }, { status: 400 });
   }
-  const { slug, answers, source } = parsed.data;
+  const { slug, answers, source, packVersion } = parsed.data;
 
   let pack;
   try {
     pack = loadPack(slug);
   } catch {
     return NextResponse.json({ error: "测试不存在" }, { status: 404 });
+  }
+
+  if (pack.meta.status !== "published") {
+    return NextResponse.json({ error: "测试不存在" }, { status: 404 });
+  }
+  // 旧页面不能把旧题目的作答交给新版计分；答案仍由客户端保留。
+  if (packVersion !== pack.meta.version) {
+    return NextResponse.json({ error: "题库已更新，请刷新后重新作答", code: "PACK_VERSION_CHANGED" }, { status: 409 });
   }
 
   // 必须答完，缺题不允许出结果

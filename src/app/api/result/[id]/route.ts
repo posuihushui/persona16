@@ -1,3 +1,4 @@
+import { readOpenId } from "@/lib/wechat/identity";
 import { NextResponse } from "next/server";
 import { freeView, loadPack } from "@/lib/content";
 import { prisma } from "@/lib/db";
@@ -20,12 +21,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   });
   if (!attempt) return NextResponse.json({ error: "结果不存在" }, { status: 404 });
 
-  const pack = loadPack(attempt.slug);
+  const pack = loadPack(attempt.slug, attempt.packVersion);
   const doc = pack.results[attempt.code];
   if (!doc) return NextResponse.json({ error: "结果内容缺失" }, { status: 500 });
 
   const sessionKey = await readSessionKey();
-  const paid = await hasPaidAccess(attempt.id, { sessionKey });
+  const openId = await readOpenId();
+  const paid = await hasPaidAccess(attempt.id, { sessionKey, openId });
 
   return NextResponse.json({
     attemptId: attempt.id,

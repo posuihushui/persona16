@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { copyText, publicTypePath } from "@/components/ShareActions";
+import ui from "../../content/ui.json";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import type { PrepayResult } from "@/lib/pay/provider";
@@ -47,15 +50,19 @@ function formatLeft(ms: number): string | null {
 }
 
 function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) {
-  const [left, setLeft] = useState<string | null>(() =>
-    formatLeft(new Date(expiresAt).getTime() - Date.now()),
-  );
+  // 服务端与首次 hydration 使用相同占位，避免跨秒造成文本不一致。
+  const [left, setLeft] = useState<string | null>(null);
+  const expired = useRef(false);
 
   useEffect(() => {
+    expired.current = false;
     const tick = () => {
       const next = formatLeft(new Date(expiresAt).getTime() - Date.now());
       setLeft(next);
-      if (next === null) onExpire();
+      if (next === null && !expired.current) {
+        expired.current = true;
+        onExpire();
+      }
     };
     tick();
     const timer = setInterval(tick, 1000);
@@ -68,7 +75,7 @@ function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () =>
     <p className="countdown">
       <Icon name="clock" size={16} />
       <span>
-        优惠还剩 <b>{left}</b>，过期恢复原价
+        {ui.checkout.countdown.replace("{time}", left)}
       </span>
     </p>
   );
@@ -86,10 +93,14 @@ function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () =>
  */
 export function Checkout({
   attemptId,
+  slug,
+  code,
   paywall,
   quote,
 }: {
   attemptId: string;
+  slug: string;
+  code: string;
   paywall: PaywallConfig;
   quote: QuoteView;
 }) {
@@ -99,6 +110,9 @@ export function Checkout({
   const [message, setMessage] = useState<string | null>(null);
   const [guidance, setGuidance] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
+  const [shareFallback, setShareFallback] = useState("");
+  const claimingRef = useRef(false);
+  const busyRef = useRef(false);
 
   const discountConfig = paywall.discount;
   const active = quote.discount;
@@ -114,74 +128,93 @@ export function Checkout({
    * 分享不解锁任何内容，只影响价格。免费部分在分享之前之后完全一样。
    * 优惠力度和有效期由服务端按内容包配置写死，这里不发送任何参数。
    */
-  const shareAndClaim = async () => {
+  const shareAndClaim = async (manuallyCopied = false) => {
+    if (claimingRef.current) return;
+    claimingRef.current = true;
     setClaiming(true);
     setMessage(null);
 
-    const url = `${window.location.origin}/r/${attemptId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setShared(true);
-    } catch {
-      window.prompt("复制这个链接分享给朋友", url);
-      setShared(true);
+    const url = `${window.location.origin}${publicTypePath(slug, code)}`;
+    if (!manuallyCopied && !(await copyText(url))) {
+      setShareFallback(url);
+      setMessage(ui.share.copyFallback);
+      setClaiming(false);
+      claimingRef.current = false;
+      return;
     }
+    setShareFallback("");
+    setShared(true);
 
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
     try {
       const res = await fetch("/api/discount/claim", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ attemptId }),
+        signal: controller.signal,
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "优惠领取失败");
+        throw new Error(data.error ?? ui.checkout.claimError);
       }
       router.refresh();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "优惠领取失败");
+      setMessage(controller.signal.aborted ? ui.checkout.claimError : err instanceof Error ? err.message : ui.checkout.claimError);
     } finally {
+      window.clearTimeout(timeout);
       setClaiming(false);
+      claimingRef.current = false;
     }
   };
 
   const confirmPayment = async (orderId: string) => {
     const deadline = Date.now() + POLL_TIMEOUT_MS;
-    setMessage("支付已提交，正在确认…");
+    setMessage(ui.checkout.paymentConfirming);
 
     while (Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 5000);
       try {
-        const res = await fetch(`/api/order/${orderId}/status`, { cache: "no-store" });
+        const res = await fetch(`/api/order/${orderId}/status`, { cache: "no-store", signal: controller.signal });
         if (res.ok) {
           const data = (await res.json()) as { paid: boolean };
           if (data.paid) {
-            setMessage("支付成功，正在打开报告…");
-            router.refresh();
+            setMessage(ui.checkout.paymentConfirmed);
+            router.push(`/r/${attemptId}/report`);
             return;
           }
         }
       } catch {
         // 网络抖动继续重试
+      } finally {
+        window.clearTimeout(timeout);
       }
     }
 
-    setMessage("还没收到支付结果");
+    setMessage(ui.checkout.paymentPending);
     setGuidance(
-      "如果你已经付款成功，通常一分钟内到账。稍等一下刷新页面即可，重复付款不会发生，同一份报告只会收一次费。",
+      ui.checkout.paymentPendingHint,
     );
     setBusy(false);
+    busyRef.current = false;
   };
 
   const pay = async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setBusy(true);
     setMessage(null);
     setGuidance(null);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
     try {
       const res = await fetch("/api/order/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ attemptId }),
+        signal: controller.signal,
       });
       const data = (await res.json()) as
         | { alreadyPaid: true; retrieveCode: string }
@@ -191,7 +224,7 @@ export function Checkout({
 
       if ("error" in data) throw new Error(data.error);
       if ("alreadyPaid" in data) {
-        router.refresh();
+        router.push(`/r/${attemptId}/report`);
         return;
       }
 
@@ -205,6 +238,7 @@ export function Checkout({
         setGuidance(prepay.guidance);
         setMessage(prepay.reason);
         setBusy(false);
+        busyRef.current = false;
         return;
       }
       if (prepay.kind === "redirect" || prepay.kind === "mock") {
@@ -213,9 +247,10 @@ export function Checkout({
       }
 
       if (!window.WeixinJSBridge) {
-        setMessage("微信支付组件还没准备好");
-        setGuidance("请稍等一两秒再试，或者点右上角在浏览器中打开后继续。");
+        setMessage(ui.checkout.bridgeUnavailable);
+        setGuidance(ui.checkout.bridgeHint);
         setBusy(false);
+        busyRef.current = false;
         return;
       }
 
@@ -224,17 +259,22 @@ export function Checkout({
         if (result.err_msg === "get_brand_wcpay_request:ok" && orderId) {
           void confirmPayment(orderId);
         } else if (result.err_msg === "get_brand_wcpay_request:cancel") {
-          setMessage("已取消支付");
+          setMessage(ui.checkout.paymentCancelled);
           setBusy(false);
+          busyRef.current = false;
         } else {
-          setMessage("支付未完成");
-          setGuidance("可以再试一次。如果反复失败，请换微信内打开或联系客服。");
+          setMessage(ui.checkout.paymentIncomplete);
+          setGuidance(ui.checkout.paymentRetry);
           setBusy(false);
+          busyRef.current = false;
         }
       });
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "下单失败，请重试");
+      setMessage(controller.signal.aborted ? ui.checkout.orderError : err instanceof Error ? err.message : ui.checkout.orderError);
       setBusy(false);
+      busyRef.current = false;
+    } finally {
+      window.clearTimeout(timeout);
     }
   };
 
@@ -246,12 +286,12 @@ export function Checkout({
     <section className="checkout">
       <div className="checkout-head">
         <h2 className="checkout-title">{paywall.productName}</h2>
-        <p className="checkout-sub">下面这些内容解锁后一次看完，不分次收费</p>
+        <p className="checkout-sub">{ui.checkout.subtitle}</p>
       </div>
 
       <div className="checkout-body">
         <ul className="locked-list">
-          {paywall.locked.map((item) => (
+          {paywall.locked.slice(0, 3).map((item) => (
             <li key={item.key}>
               <Icon name="lock" size={17} />
               <span>
@@ -261,6 +301,15 @@ export function Checkout({
             </li>
           ))}
         </ul>
+        {paywall.locked.length > 3 && <details className="checkout-details">
+          <summary>查看其余 {paywall.locked.length - 3} 项内容</summary>
+          <ul className="locked-list">
+            {paywall.locked.slice(3).map((item) => <li key={item.key}>
+              <Icon name="lock" size={17} />
+              <span><b>{item.title}</b><span>{item.hint}</span></span>
+            </li>)}
+          </ul>
+        </details>}
 
         <div className="price-row">
           <span className="price-now">
@@ -284,20 +333,23 @@ export function Checkout({
         {!active && discountConfig?.trigger === "share" && (
           <div className="fission">
             <p className="fission-title">
-              把结果发给朋友，{discountConfig.windowHours} 小时内{" "}
-              {asOff(discountConfig.percent)} 折
+              {ui.checkout.shareOffer.replace("{hours}", String(discountConfig.windowHours)).replace("{off}", asOff(discountConfig.percent))}
             </p>
             <p className="fission-hint">
-              免费部分本来就完整可看，分享不改变这一点，只改变深度报告的价格。
+              {ui.checkout.shareHint}
             </p>
             <button
               type="button"
               className="btn btn-ghost btn-block"
-              onClick={shareAndClaim}
+              onClick={() => void shareAndClaim()}
               disabled={claiming}
             >
-              {claiming ? "处理中…" : shared ? "已复制链接，正在领取优惠…" : "复制链接并领取优惠"}
+              {claiming ? "处理中…" : shared ? "已复制链接，重新领取优惠" : "复制链接并领取优惠"}
             </button>
+            {shareFallback && <div className="stack">
+              <input className="field share-url" aria-label="类型分享链接" readOnly value={shareFallback} onFocus={(event) => event.target.select()} />
+              <button className="btn btn-ghost btn-block" type="button" onClick={() => void shareAndClaim(true)} disabled={claiming}>已手动复制，领取优惠</button>
+            </div>}
           </div>
         )}
 
@@ -312,12 +364,13 @@ export function Checkout({
         </button>
 
         {message && (
-          <p className="small" style={{ margin: "0.75rem 0 0" }}>
+          <p className="small" role="status" style={{ margin: "0.75rem 0 0" }}>
             {message}
           </p>
         )}
         {guidance && <p className="notice" style={{ marginTop: "0.75rem" }}>{guidance}</p>}
 
+        <Link className="share-text-button" href="/retrieve">找回已购报告 →</Link>
         <p className="small muted" style={{ margin: "0.875rem 0 0" }}>
           {paywall.refundNote}
         </p>

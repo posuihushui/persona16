@@ -7,6 +7,8 @@
  * 服务端的 freeView() 已经截断了。前端不做隐藏式伪装，
  * 查看源码也拿不到付费内容（agents.md 数据与权限约定）。
  */
+import ui from "../../content/ui.json";
+
 export function LockedPreview({
   teaser,
   remaining,
@@ -22,7 +24,7 @@ export function LockedPreview({
         <span className="locked-fade" aria-hidden="true" />
       </div>
       {remaining !== undefined && remaining > 0 && (
-        <p className="locked-more">这段还有 {remaining} 字，和下面十项一起解锁</p>
+        <p className="locked-more">{ui.result.remainingNote.replace("{count}", String(remaining))}</p>
       )}
     </div>
   );

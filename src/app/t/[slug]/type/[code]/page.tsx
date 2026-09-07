@@ -111,7 +111,8 @@ export default async function TypePage({
       </nav>
 
       <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
-        <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} />
+        <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} compact />
+        <Link className="btn btn-block" href={`/t/${slug}/quiz`}>开始测试，看看我的类型</Link>
 
 
         <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>

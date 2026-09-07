@@ -1,3 +1,6 @@
+import { cache } from "react";
+import ui from "../../../../content/ui.json";
+import { readOpenId } from "@/lib/wechat/identity";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,14 +22,14 @@ import type { DimensionScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function loadAttempt(id: string) {
+const loadAttempt = cache(async (id: string) => {
   const attempt = await prisma.attempt.findFirst({
     where: { id, deletedAt: null },
     select: { id: true, slug: true, code: true, dimensions: true, packVersion: true },
   });
   if (!attempt) return null;
   return attempt;
-}
+});
 
 export async function generateMetadata({
   params,
@@ -35,11 +38,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { resultId } = await params;
   const attempt = await loadAttempt(resultId);
-  if (!attempt) return { title: "结果不存在" };
+  if (!attempt) return { title: "结果不存在", robots: { index: false, follow: false } };
 
-  const pack = loadPack(attempt.slug);
+  const pack = loadPack(attempt.slug, attempt.packVersion);
   const doc = pack.results[attempt.code];
-  if (!doc) return { title: pack.meta.name };
+  if (!doc) return { title: pack.meta.name, robots: { index: false, follow: false } };
 
   const title = `${attempt.code} ${doc.name} · ${pack.meta.name}`;
   return {
@@ -51,7 +54,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description: doc.label,
-      images: [`/api/og?slug=${attempt.slug}&code=${attempt.code}`],
+      images: [`/api/og?slug=${attempt.slug}&code=${attempt.code}&version=${attempt.packVersion}`],
     },
   };
 }
@@ -61,13 +64,14 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
   const attempt = await loadAttempt(resultId);
   if (!attempt) notFound();
 
-  const pack = loadPack(attempt.slug);
+  const pack = loadPack(attempt.slug, attempt.packVersion);
   const doc = pack.results[attempt.code];
   if (!doc) notFound();
 
   const dimensions = attempt.dimensions as unknown as DimensionScore[];
   const sessionKey = await readSessionKey();
-  const paid = await hasPaidAccess(attempt.id, { sessionKey });
+  const openId = await readOpenId();
+  const paid = await hasPaidAccess(attempt.id, { sessionKey, openId });
 
   // 未付费时只把免费字段和一段预览渲染进 HTML，付费正文根本不进页面
   const view = paid ? null : freeView(doc, pack.paywall);
@@ -75,31 +79,32 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
   // 纯限时促销不需要用户做任何动作，第一次看到结果就发券。
   // share 模式下必须由用户主动分享才发，这里不发。
   if (!paid && sessionKey && pack.paywall.discount?.trigger === "timed") {
-    await claimDiscount(attempt.id, { sessionKey }, pack.paywall);
+    await claimDiscount(attempt.id, { sessionKey, openId }, pack.paywall);
   }
 
   // 价格在服务端算好后传给付款界面，客户端不参与定价
   const priced =
     paid || !sessionKey
       ? null
-      : await quote(attempt.id, { sessionKey }, pack.paywall);
+      : await quote(attempt.id, { sessionKey, openId }, pack.paywall);
 
   return (
-    <main className="page" style={{ paddingTop: "2rem", paddingBottom: "2rem" }}>
+    <main className="page result-page">
       <TrackView name="result_view" slug={attempt.slug} attemptId={attempt.id} />
 
       <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
         {/* 首屏就是用户会截图的那张卡 */}
-        <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} />
+        <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} compact heading />
+        <ShareBar attemptId={attempt.id} slug={attempt.slug} code={attempt.code} version={attempt.packVersion} label={doc.label} />
 
         {/* 得分先给图。用户看维度位置比看文字快得多 */}
         <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
-          <SectionHead icon="layers" title="你落在四条轴的哪里" hint="点越靠边，这个偏好越明显" />
+          <SectionHead icon="layers" title={ui.result.axesTitle} hint={ui.result.axesHint} />
           <ScoreSpectrum dimensions={pack.scoring.dimensions} scores={dimensions} />
         </section>
 
         <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-          <h2 className="h2">你大概是这样一个人</h2>
+          <h2 className="h2">{ui.result.coreTitle}</h2>
           {paid ? (
             <p style={{ margin: 0, whiteSpace: "pre-line" }}>{doc.core}</p>
           ) : (
@@ -110,17 +115,16 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
         {paid && (
           <div className="versus">
             <div className="versus-col is-good">
-              <h3>你最舒服的状态</h3>
+              <h3>{ui.result.atBest}</h3>
               <p className="small" style={{ margin: 0 }}>{doc.atBest}</p>
             </div>
             <div className="versus-col is-bad">
-              <h3>你最容易累的状态</h3>
+              <h3>{ui.result.atWorst}</h3>
               <p className="small" style={{ margin: 0 }}>{doc.atWorst}</p>
             </div>
           </div>
         )}
 
-        <ShareBar attemptId={attempt.id} code={attempt.code} />
 
         <hr className="divider" />
 
@@ -139,6 +143,8 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
             {priced && (
               <Checkout
                 attemptId={attempt.id}
+                slug={attempt.slug}
+                code={attempt.code}
                 paywall={pack.paywall}
                 quote={{
                   amount: priced.amount,
@@ -159,7 +165,7 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
         <div className="notice">{pack.meta.disclaimer}</div>
 
         <p className="small muted" style={{ margin: 0 }}>
-          结果按内容包 {attempt.packVersion} 版渲染。题库更新后，这份结果不会变。
+          {ui.result.versionNote.replace("{version}", attempt.packVersion)}
         </p>
 
         <SiteFooter />

@@ -32,16 +32,28 @@ export function listTestSlugs(): string[] {
     .sort();
 }
 
-export function loadPack(slug: string): TestPack {
-  const cached = cache.get(slug);
+export function loadPack(slug: string, version?: string): TestPack {
+  if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(slug) ||
+      (version !== undefined && !/^\d+\.\d+\.\d+$/.test(version))) {
+    throw new Error("内容包标识不合法");
+  }
+  const cacheKey = `${slug}@${version ?? "current"}`;
+  const cached = cache.get(cacheKey);
   if (cached) return cached;
 
-  const dir = path.join(CONTENT_ROOT, slug);
+  let dir = path.join(CONTENT_ROOT, slug);
   if (!fs.existsSync(dir)) {
     throw new Error(`内容包不存在: ${slug}`);
   }
 
-  const meta = readJson<TestMeta>(path.join(dir, "meta.json"));
+  let meta = readJson<TestMeta>(path.join(dir, "meta.json"));
+  if (version !== undefined && version !== meta.version) {
+    dir = path.join(dir, "versions", version);
+    meta = readJson<TestMeta>(path.join(dir, "meta.json"));
+  }
+  if (meta.slug !== slug || (version !== undefined && meta.version !== version)) {
+    throw new Error("内容包版本不匹配");
+  }
   const questions = readJson<Questions>(path.join(dir, "questions.json"));
   const scoring = readJson<Scoring>(path.join(dir, "scoring.json"));
   const paywall = readJson<Paywall>(path.join(dir, "paywall.json"));
@@ -53,7 +65,7 @@ export function loadPack(slug: string): TestPack {
   }
 
   const resultsDir = path.join(dir, "results");
-  const results: Record<string, ResultDoc> = {};
+  const results: Record<string, ResultDoc> = Object.create(null);
   if (fs.existsSync(resultsDir)) {
     for (const file of fs.readdirSync(resultsDir)) {
       if (!file.endsWith(".json")) continue;
@@ -63,7 +75,7 @@ export function loadPack(slug: string): TestPack {
   }
 
   const pack: TestPack = { meta, questions, scoring, paywall, results };
-  cache.set(slug, pack);
+  cache.set(cacheKey, pack);
   return pack;
 }
 

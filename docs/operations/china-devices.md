@@ -26,7 +26,7 @@
 
 **去掉了 Tailwind。** 项目一个工具类都没用到，只是在用它的 reset，但 Tailwind v4 会产出 `@property`、`color-mix()`、`@layer` 和 `oklab()`，这几样在 X5 上会让整块样式失效。自己写 reset 之后 CSS 产物从 10.3 KB 降到 6.9 KB，且没有一个特性超出基线。
 
-**flex 的 gap 全部带回退。** `gap` 在 flex 容器里要 Chrome 84 / iOS 14.5，低于这个版本会把间距全部丢掉，元素挤成一团，这是最容易在真机上翻车的一条。做法是 `.row` 和 `.wrap` 两个类默认用 margin，外面套 `@supports (gap: 1px)` 再切回 gap。组件里不允许再写内联的 `display: flex` 加 `gap`，检查脚本会拦。
+**flex 间距始终用外边距。** `.row` 和 `.wrap` 使用 margin 实现间距，不再用 `@supports (gap: 1px)` 切换。旧内核可能支持 grid gap 而不支持 flex gap，这个查询无法区分两者，会误删必要的回退。组件里不允许再写内联的 `display: flex` 加 `gap`，检查脚本会拦。
 
 **逻辑属性全换成物理属性。** `padding-block`、`inset-block` 这类要 Chrome 87，而且构建期不会自动降级。
 
@@ -41,7 +41,7 @@
 - 字体：只用系统字体栈，按苹方、鸿蒙、小米兰亭、思源、雅黑依次回落，不加载任何字体文件。
 - 统计：自建埋点写数据库，不接 Google Analytics。
 - 依赖：全部打进产物，不走任何公共 CDN。
-- 图片：只有自己生成的 PNG 图标和动态 SVG 分享卡。
+- 图片：自己生成的 PNG 图标、动态 SVG，以及浏览器从同源 SVG 转出的 PNG 分享卡。
 
 新增任何第三方 SDK 之前，先确认它的资源域名在国内可达。这条没有例外。
 

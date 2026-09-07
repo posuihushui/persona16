@@ -1,3 +1,4 @@
+import { readOpenId } from "@/lib/wechat/identity";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -28,12 +29,13 @@ export default async function ReportPage({
 
   const attempt = await prisma.attempt.findFirst({
     where: { id: resultId, deletedAt: null },
-    select: { id: true, slug: true, code: true },
+    select: { id: true, slug: true, code: true, packVersion: true },
   });
   if (!attempt) notFound();
 
   const sessionKey = await readSessionKey();
-  let paid = await hasPaidAccess(attempt.id, { sessionKey, retrieveCode });
+  const openId = await readOpenId();
+  let paid = await hasPaidAccess(attempt.id, { sessionKey, openId, retrieveCode });
 
   // 微信 H5 支付会把用户直接跳回这里，此时回调可能还没到。
   // 先就本人的待支付订单主动查一次单，避免付了钱却被弹回结果页。
@@ -51,7 +53,7 @@ export default async function ReportPage({
 
   if (!paid) redirect(`/r/${attempt.id}`);
 
-  const pack = loadPack(attempt.slug);
+  const pack = loadPack(attempt.slug, attempt.packVersion);
   const doc = pack.results[attempt.code];
   if (!doc) notFound();
 

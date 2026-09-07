@@ -42,8 +42,7 @@ function enumerateCodes(scoring) {
   return acc;
 }
 
-function validatePack(slug) {
-  const dir = path.join(ROOT, slug);
+function validatePack(slug, dir = path.join(ROOT, slug), expectedSlug = slug, expectedVersion) {
   console.log(`\n检查内容包 ${slug}`);
 
   for (const f of ["meta.json", "questions.json", "scoring.json", "paywall.json"]) {
@@ -66,6 +65,12 @@ function validatePack(slug) {
   }
 
   // 版本一致
+  if (meta.slug !== expectedSlug || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(meta.slug)) {
+    fail(slug, "meta.slug 必须是合法路径标识且与测试目录名一致");
+  }
+  if (!/^\d+\.\d+\.\d+$/.test(meta.version) || (expectedVersion && meta.version !== expectedVersion)) {
+    fail(slug, "meta.version 必须是三段数字版本号，归档版本还须与目录名一致");
+  }
   if (meta.version !== questions.version || meta.version !== scoring.version) {
     fail(
       slug,
@@ -304,7 +309,15 @@ function main() {
     process.exit(1);
   }
 
-  for (const slug of slugs) validatePack(slug);
+  for (const slug of slugs) {
+    validatePack(slug);
+    const archiveRoot = path.join(ROOT, slug, "versions");
+    if (!fs.existsSync(archiveRoot)) continue;
+    for (const entry of fs.readdirSync(archiveRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      validatePack(`${slug}@${entry.name}`, path.join(archiveRoot, entry.name), slug, entry.name);
+    }
+  }
 
   console.log(`\n内容包校验完成：${errors} 个错误，${warnings} 个提醒`);
   if (errors > 0) process.exit(1);
