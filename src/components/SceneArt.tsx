@@ -78,6 +78,8 @@ function Figure({
   flip = false,
   arms = "down",
   tilt = 0,
+  className,
+  delay = 0,
 }: {
   x?: number;
   y?: number;
@@ -89,6 +91,10 @@ function Figure({
   flip?: boolean;
   arms?: "down" | "up" | "forward" | "hold" | "wave";
   tilt?: number;
+  /** 整个人身上挂的动画类，比如轻轻上下浮动 */
+  className?: string;
+  /** 动画错开的秒数。同一张图里两个人同时眨眼会很假 */
+  delay?: number;
 }) {
   // 每种姿势：左手落点、右手落点。胳膊从肩膀画到手，手是一个小圆
   const poses: Record<string, [[number, number], [number, number]]> = {
@@ -99,32 +105,42 @@ function Figure({
     wave: [[-22, 30], [27, -12]],
   };
   const [left, right] = poses[arms];
+  const armStroke = { stroke: body, strokeWidth: 6.5, strokeLinecap: "round" as const, fill: "none" };
 
   return (
     <g transform={`translate(${x} ${y}) scale(${flip ? -scale : scale} ${scale}) rotate(${tilt})`}>
-      <path d="M-8 40 L-8 46 M8 40 L8 46" stroke={legs} strokeWidth="6" strokeLinecap="round" />
-      <ellipse cx="-9" cy="48" rx="6.5" ry="4" fill={legs} />
-      <ellipse cx="9" cy="48" rx="6.5" ry="4" fill={legs} />
-      {/* 胳膊在身体之前画，肩点被身体盖住，露出的就是小臂和手 */}
-      <path
-        d={`M-11 10 L${left[0]} ${left[1]} M11 10 L${right[0]} ${right[1]}`}
-        stroke={body}
-        strokeWidth="6.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <circle cx={left[0]} cy={left[1]} r="3.8" fill={skin} />
-      <circle cx={right[0]} cy={right[1]} r="3.8" fill={skin} />
-      {/* 身体：肩窄下摆宽的一个形，底边留出腿 */}
-      <path d="M-15 42 C-15 18 -10 6 0 6 C10 6 15 18 15 42 Z" fill={body} />
-      <circle cx="0" cy="-10" r="13.5" fill={skin} />
-      {/* 头发：盖住后脑，留出脸 */}
-      <path d="M-13.5 -10 C-13.5 -23 -7 -27 0 -27 C8 -27 14 -21 13.5 -9 C10.5 -16 6 -19 0 -19 C-6.5 -19 -11 -15 -13.5 -10 Z" fill={hair} />
-      <circle cx="-4.6" cy="-10" r="1.7" fill={C.ink} />
-      <circle cx="4.6" cy="-10" r="1.7" fill={C.ink} />
-      <path d="M-3.4 -4 C-1.2 -1.6 1.2 -1.6 3.4 -4" stroke={C.ink} strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <circle cx="-8.6" cy="-5.4" r="2.2" fill={C.rose} opacity="0.55" />
-      <circle cx="8.6" cy="-5.4" r="2.2" fill={C.rose} opacity="0.55" />
+      <g className={className} style={delay ? { animationDelay: `${delay}s` } : undefined}>
+        <path d="M-8 40 L-8 46 M8 40 L8 46" stroke={legs} strokeWidth="6" strokeLinecap="round" />
+        <ellipse cx="-9" cy="48" rx="6.5" ry="4" fill={legs} />
+        <ellipse cx="9" cy="48" rx="6.5" ry="4" fill={legs} />
+        {/* 胳膊在身体之前画，肩点被身体盖住，露出的就是小臂和手 */}
+        <path d={`M-11 10 L${left[0]} ${left[1]}`} {...armStroke} />
+        <circle cx={left[0]} cy={left[1]} r="3.8" fill={skin} />
+        {/*
+         * 挥手的那条胳膊单独成组，绕肩点摆动。
+         * transform-origin 用 left bottom：这条路径的包围盒左下角正好是肩膀。
+         */}
+        <g
+          className={arms === "wave" ? "scene-wave" : undefined}
+          style={arms === "wave" && delay ? { animationDelay: `${delay}s` } : undefined}
+        >
+          <path d={`M11 10 L${right[0]} ${right[1]}`} {...armStroke} />
+          <circle cx={right[0]} cy={right[1]} r="3.8" fill={skin} />
+        </g>
+        {/* 身体：肩窄下摆宽的一个形，底边留出腿 */}
+        <path d="M-15 42 C-15 18 -10 6 0 6 C10 6 15 18 15 42 Z" fill={body} />
+        <circle cx="0" cy="-10" r="13.5" fill={skin} />
+        {/* 头发：盖住后脑，留出脸 */}
+        <path d="M-13.5 -10 C-13.5 -23 -7 -27 0 -27 C8 -27 14 -21 13.5 -9 C10.5 -16 6 -19 0 -19 C-6.5 -19 -11 -15 -13.5 -10 Z" fill={hair} />
+        {/* 眼睛整组眨：竖向压扁再弹回，两个人错开时间 */}
+        <g className="scene-blink" style={{ animationDelay: `${1.4 + delay * 1.7}s` }}>
+          <circle cx="-4.6" cy="-10" r="1.7" fill={C.ink} />
+          <circle cx="4.6" cy="-10" r="1.7" fill={C.ink} />
+        </g>
+        <path d="M-3.4 -4 C-1.2 -1.6 1.2 -1.6 3.4 -4" stroke={C.ink} strokeWidth="1.6" strokeLinecap="round" fill="none" />
+        <circle cx="-8.6" cy="-5.4" r="2.2" fill={C.rose} opacity="0.55" />
+        <circle cx="8.6" cy="-5.4" r="2.2" fill={C.rose} opacity="0.55" />
+      </g>
     </g>
   );
 }
@@ -196,35 +212,36 @@ function Decor({
           <circle cx="20" cy="128" r="3" fill={accent} opacity="0.6" className="scene-float" />
         </g>
       )}
-      <g className="scene-float">
-        {kind === "sun" && (
-          <>
-            <circle cx="288" cy="48" r="16" fill={accent} />
-            <path
-              d="M288 20 L288 12 M288 84 L288 76 M260 48 L252 48 M324 48 L316 48 M268 28 L262 22 M308 68 L314 74 M308 28 L314 22 M268 68 L262 74"
-              stroke={accent}
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </>
-        )}
-        {kind === "cloud" && (
+      {kind === "sun" && (
+        <g className="scene-breathe">
+          <circle cx="288" cy="48" r="16" fill={accent} />
+          <path
+            className="scene-spin"
+            d="M288 20 L288 12 M288 84 L288 76 M260 48 L252 48 M324 48 L316 48 M268 28 L262 22 M308 68 L314 74 M308 28 L314 22 M268 68 L262 74"
+            stroke={accent}
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </g>
+      )}
+      {kind === "cloud" && (
+        <g className="scene-drift">
           <path
             d="M262 56 C262 46 270 40 280 41 C284 32 298 32 302 41 C312 40 318 47 316 56 C314 63 306 66 298 66 L276 66 C268 66 263 62 262 56 Z"
             fill={C.cloud}
             stroke={accent}
             strokeWidth="2.5"
           />
-        )}
-        {kind === "moon" && (
-          <>
-            <circle cx="288" cy="46" r="15" fill={accent} />
-            <circle cx="281" cy="42" r="12" fill={PAPER} />
-            <circle cx="262" cy="66" r="2.6" fill={accent} />
-            <circle cx="308" cy="72" r="2.2" fill={accent} />
-          </>
-        )}
-      </g>
+        </g>
+      )}
+      {kind === "moon" && (
+        <g className="scene-float">
+          <circle cx="288" cy="46" r="15" fill={accent} />
+          <circle cx="281" cy="42" r="12" fill={PAPER} />
+          <circle className="scene-twinkle" cx="262" cy="66" r="2.8" fill={accent} />
+          <circle className="scene-twinkle" style={{ animationDelay: "0.9s" }} cx="308" cy="72" r="2.4" fill={accent} />
+        </g>
+      )}
       <circle cx="300" cy="150" r="9" fill={accent} opacity="0.35" />
       <circle cx="282" cy="158" r="5" fill={leaf} opacity="0.5" />
     </>
@@ -274,10 +291,13 @@ const SCENES: Record<string, Scene> = {
             hair={HAIRS[0]}
             arms="wave"
             flip
+            className="scene-bob"
           />
         </g>
-        <path d="M126 150 L160 44 M140 156 L152 118" stroke={C.cloud} strokeWidth="7" strokeLinecap="round" opacity="0.75" />
-        <Figure x={62} y={118} scale={1} body={C.indigo} legs={C.indigoDeep} hair={HAIRS[0]} arms="wave" />
+        <g className="scene-glare">
+          <path d="M126 150 L160 44 M140 156 L152 118" stroke={C.cloud} strokeWidth="7" strokeLinecap="round" opacity="0.75" />
+        </g>
+        <Figure x={62} y={118} scale={1} body={C.indigo} legs={C.indigoDeep} hair={HAIRS[0]} arms="wave" className="scene-bob" />
         <Plant x={26} y={158} scale={0.9} leaf={C.teal} leafDeep={C.tealDeep} pot={C.coral} />
       </>
     ),
@@ -297,8 +317,8 @@ const SCENES: Record<string, Scene> = {
           <path d="M108 26 C126 16 152 22 158 40 C164 58 150 72 132 72 L120 72 L108 82 L112 69 C102 62 100 36 108 26 Z" fill={C.cloud} stroke={C.coral} strokeWidth="3" />
           <path d="M118 44 L148 44 M118 55 L138 55" stroke={C.coral} strokeWidth="4" strokeLinecap="round" />
         </g>
-        <Figure x={136} y={118} scale={0.95} body={C.coral} legs={C.coralDeep} hair={HAIRS[3]} skin={SKINS[1]} arms="wave" />
-        <Figure x={60} y={118} scale={0.95} body={C.tealDeep} legs={C.ink} hair={HAIRS[2]} arms="hold" tilt={-3} />
+        <Figure x={136} y={118} scale={0.95} body={C.coral} legs={C.coralDeep} hair={HAIRS[3]} skin={SKINS[1]} arms="wave" className="scene-bob" />
+        <Figure x={60} y={118} scale={0.95} body={C.tealDeep} legs={C.ink} hair={HAIRS[2]} arms="hold" tilt={-3} className="scene-bob" delay={0.7} />
         <g transform="rotate(-8 60 138)">
           <rect x="41" y="124" width="38" height="26" rx="4" fill={C.cloud} stroke={C.indigoDeep} strokeWidth="2.5" />
           <rect x="41" y="124" width="19" height="26" fill={C.indigo} opacity="0.35" />
@@ -329,7 +349,7 @@ const SCENES: Record<string, Scene> = {
           <circle cx="72" cy="110" r="14" fill={C.cloud} fillOpacity="0.7" stroke={C.amberDeep} strokeWidth="3.5" />
           <path d="M82 120 L92 130" stroke={C.amberDeep} strokeWidth="4" strokeLinecap="round" />
         </g>
-        <Figure x={158} y={118} scale={0.9} body={C.rose} legs={C.roseDeep} hair={HAIRS[1]} arms="up" flip />
+        <Figure x={158} y={118} scale={0.9} body={C.rose} legs={C.roseDeep} hair={HAIRS[1]} arms="up" flip className="scene-bob" delay={0.5} />
       </>
     ),
   },
@@ -351,7 +371,7 @@ const SCENES: Record<string, Scene> = {
           <path d="M139 74 C146 65 159 68 159 78 C159 89 145 96 139 101 C133 96 119 89 119 78 C119 68 132 65 139 74 Z" fill={C.coral} />
         </g>
         <path d="M100 58 L100 76" stroke={C.line} strokeWidth="4" strokeLinecap="round" />
-        <Figure x={100} y={124} scale={1} body={C.teal} legs={C.tealDeep} hair={HAIRS[2]} skin={SKINS[1]} arms="up" />
+        <Figure x={100} y={124} scale={1} body={C.teal} legs={C.tealDeep} hair={HAIRS[2]} skin={SKINS[1]} arms="up" className="scene-bob" />
         <Plant x={30} y={160} scale={0.85} leaf={C.sage} pot={C.rose} />
         <Plant x={172} y={160} scale={0.95} leaf={C.teal} leafDeep={C.tealDeep} pot={C.amber} />
       </>
@@ -370,8 +390,8 @@ const SCENES: Record<string, Scene> = {
       <>
         <path d="M22 152 L84 152 L84 114 L150 114" stroke={C.sky} strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         <path d="M22 152 C56 140 60 104 96 96 C128 89 142 72 178 74" stroke={C.amber} strokeWidth="5" strokeLinecap="round" strokeDasharray="7 9" fill="none" className="scene-dash" />
-        <Figure x={60} y={122} scale={0.88} body={C.skyDeep} legs={C.ink} hair={HAIRS[0]} arms="hold" />
-        <Figure x={148} y={90} scale={0.84} body={C.amber} legs={C.amberDeep} hair={HAIRS[3]} skin={SKINS[1]} arms="wave" flip />
+        <Figure x={60} y={122} scale={0.88} body={C.skyDeep} legs={C.ink} hair={HAIRS[0]} arms="hold" className="scene-bob" delay={0.9} />
+        <Figure x={148} y={90} scale={0.84} body={C.amber} legs={C.amberDeep} hair={HAIRS[3]} skin={SKINS[1]} arms="wave" flip className="scene-bob" />
         <g className="scene-float">
           <rect x="18" y="34" width="48" height="38" rx="9" fill={C.cloud} stroke={C.skyDeep} strokeWidth="3" />
           <path d="M26 47 L58 47 M26 59 L48 59" stroke={C.sky} strokeWidth="4" strokeLinecap="round" />
@@ -396,8 +416,13 @@ const SCENES: Record<string, Scene> = {
           <path d="M104 119 C115 119 120 124 122 130" stroke={C.skyDeep} strokeWidth="3.5" strokeLinecap="round" fill="none" />
         </g>
         <g className="scene-drop">
-          <circle cx="126" cy="140" r="3" fill={C.sky} />
-          <circle cx="134" cy="132" r="2.4" fill={C.skyDeep} />
+          <circle cx="126" cy="142" r="3.2" fill={C.sky} />
+        </g>
+        <g className="scene-drop" style={{ animationDelay: "0.5s" }}>
+          <circle cx="134" cy="136" r="2.6" fill={C.skyDeep} />
+        </g>
+        <g className="scene-drop" style={{ animationDelay: "1s" }}>
+          <circle cx="142" cy="140" r="2.2" fill={C.sky} />
         </g>
         <Plant x={126} y={160} scale={0.6} leaf={C.sage} pot={C.coral} sway={false} />
         <Plant x={152} y={160} scale={0.95} leaf={C.teal} leafDeep={C.tealDeep} pot={C.amber} />
@@ -416,8 +441,8 @@ const SCENES: Record<string, Scene> = {
     decor: "cloud",
     main: (
       <>
-        <Figure x={54} y={122} scale={0.98} body={C.indigo} legs={C.indigoDeep} hair={HAIRS[0]} arms="forward" />
-        <Figure x={146} y={122} scale={0.98} body={C.teal} legs={C.tealDeep} hair={HAIRS[3]} skin={SKINS[2]} arms="forward" flip />
+        <Figure x={54} y={122} scale={0.98} body={C.indigo} legs={C.indigoDeep} hair={HAIRS[0]} arms="forward" className="scene-bob" />
+        <Figure x={146} y={122} scale={0.98} body={C.teal} legs={C.tealDeep} hair={HAIRS[3]} skin={SKINS[2]} arms="forward" flip className="scene-bob" delay={0.8} />
         <g className="scene-float">
           <path d="M58 40 C58 30 67 24 80 24 C93 24 102 30 102 40 C102 50 93 56 80 56 L72 56 L60 66 L64 54 C60 51 58 46 58 40 Z" fill={C.cloud} stroke={C.indigoDeep} strokeWidth="3" />
           <circle cx="71" cy="40" r="3.2" fill={C.indigo} />
@@ -471,7 +496,11 @@ const SCENES: Record<string, Scene> = {
         <rect x="94" y="26" width="86" height="70" rx="10" fill={C.cloud} stroke={C.skyDeep} strokeWidth="3" />
         <g className="scene-rise">
           <rect x="106" y="66" width="17" height="22" rx="4" fill={C.sky} />
+        </g>
+        <g className="scene-rise" style={{ animationDelay: "0.25s" }}>
           <rect x="129" y="52" width="17" height="36" rx="4" fill={C.amber} />
+        </g>
+        <g className="scene-rise" style={{ animationDelay: "0.5s" }}>
           <rect x="152" y="38" width="17" height="50" rx="4" fill={C.sage} />
         </g>
         <Figure x={58} y={110} scale={0.94} body={C.indigo} legs={C.indigoDeep} hair={HAIRS[0]} skin={SKINS[1]} arms="forward" />

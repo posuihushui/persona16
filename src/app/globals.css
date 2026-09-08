@@ -2823,48 +2823,93 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 }
 
 @keyframes scene-sway {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2.5deg); }
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(8deg); }
 }
 
 @keyframes scene-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  50% { transform: translateY(-11px); }
+}
+
+@keyframes scene-drift {
+  0%, 100% { transform: translate(-9px, 0); }
+  50% { transform: translate(9px, -5px); }
 }
 
 @keyframes scene-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+  0%, 100% { transform: scale(1) rotate(-4deg); }
+  50% { transform: scale(1.2) rotate(4deg); }
 }
 
 @keyframes scene-tip {
-  0%, 100% { transform: rotate(-2.5deg); }
-  50% { transform: rotate(2.5deg); }
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
 }
 
 @keyframes scene-beat {
-  0%, 100% { transform: scale(1) translateY(0); }
-  40% { transform: scale(1.07) translateY(-3px); }
+  0%, 45%, 100% { transform: scale(1); }
+  15% { transform: scale(1.18); }
+  30% { transform: scale(1.06); }
 }
 
 @keyframes scene-drop {
-  0% { opacity: 0; transform: translateY(-6px); }
-  40% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(10px); }
+  0% { opacity: 0; transform: translateY(-8px) scale(0.6); }
+  25% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(26px) scale(0.7); }
 }
 
 @keyframes scene-dash {
-  to { stroke-dashoffset: -32; }
+  to { stroke-dashoffset: -64; }
 }
 
 @keyframes scene-rise {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-9px) scaleY(1.06); }
 }
 
 @keyframes scene-fade {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.72; }
+}
+
+/* 头顶那口气：整体轻轻胀一下再回来 */
+@keyframes scene-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.09); }
+}
+
+@keyframes scene-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 人物上下起伏，像在呼吸或点头 */
+@keyframes scene-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* 挥手：胳膊绕肩来回摆 */
+@keyframes scene-wave {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(18deg); }
+}
+
+/* 眨眼：眼睛竖向压扁一下，很快弹回，一轮里只占很短一段 */
+@keyframes scene-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+}
+
+@keyframes scene-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+
+/* 镜面反光斜着扫过 */
+@keyframes scene-glare {
+  0%, 100% { transform: translateX(-9px); opacity: 0.45; }
+  50% { transform: translateX(9px); opacity: 0.9; }
 }
 
 /*
@@ -2879,21 +2924,38 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 .scene-rise,
 .scene-float,
 .scene-float-slow,
-.scene-fade {
+.scene-fade,
+.scene-breathe,
+.scene-spin,
+.scene-bob,
+.scene-wave,
+.scene-blink,
+.scene-twinkle,
+.scene-drift,
+.scene-glare {
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.scene-sway { animation: scene-sway 6s ease-in-out infinite; transform-origin: bottom center; }
-.scene-float { animation: scene-float 5s ease-in-out infinite; }
-.scene-float-slow { animation: scene-float 7s ease-in-out infinite; }
-.scene-pulse { animation: scene-pulse 3.6s ease-in-out infinite; }
-.scene-tip { animation: scene-tip 5.5s ease-in-out infinite; }
-.scene-beat { animation: scene-beat 3.2s ease-in-out infinite; }
-.scene-drop { animation: scene-drop 2.8s ease-in-out infinite; }
-.scene-dash { animation: scene-dash 3s linear infinite; }
-.scene-rise { animation: scene-rise 4.5s ease-in-out infinite; transform-origin: bottom center; }
-.scene-fade { animation: scene-fade 5s ease-in-out infinite; }
+.scene-sway { animation: scene-sway 3.4s ease-in-out infinite; transform-origin: bottom center; }
+.scene-float { animation: scene-float 3.2s ease-in-out infinite; }
+.scene-float-slow { animation: scene-float 4.4s ease-in-out infinite; }
+.scene-drift { animation: scene-drift 6s ease-in-out infinite; }
+.scene-pulse { animation: scene-pulse 2.4s ease-in-out infinite; }
+.scene-tip { animation: scene-tip 3s ease-in-out infinite; }
+.scene-beat { animation: scene-beat 1.8s ease-in-out infinite; }
+.scene-drop { animation: scene-drop 1.8s ease-in-out infinite; }
+.scene-dash { animation: scene-dash 1.6s linear infinite; }
+.scene-rise { animation: scene-rise 2.6s ease-in-out infinite; transform-origin: bottom center; }
+.scene-fade { animation: scene-fade 3.2s ease-in-out infinite; }
+.scene-breathe { animation: scene-breathe 3s ease-in-out infinite; }
+.scene-spin { animation: scene-spin 14s linear infinite; }
+.scene-bob { animation: scene-bob 2.6s ease-in-out infinite; }
+/* 肩膀在这条路径包围盒的左下角，绕它转才像挥手 */
+.scene-wave { animation: scene-wave 1s ease-in-out infinite; transform-origin: left bottom; }
+.scene-blink { animation: scene-blink 3.8s ease-in-out infinite; }
+.scene-twinkle { animation: scene-twinkle 2.2s ease-in-out infinite; }
+.scene-glare { animation: scene-glare 3.6s ease-in-out infinite; }
 
 /* ============ 15. 类型解读页 ============ */
 /*
@@ -2922,16 +2984,16 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 }
 
 .type-hero-card {
-  animation: hero-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: hero-in 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 .type-hero-copy {
-  animation: hero-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) 80ms both;
+  animation: hero-in 520ms cubic-bezier(0.22, 0.61, 0.36, 1) 120ms both;
 }
 
 @keyframes hero-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .type-hero-copy > .eyebrow {
@@ -3008,6 +3070,13 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   background: var(--accent-soft);
   color: var(--accent-strong);
   font-weight: 600;
+  animation: tab-pop 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes tab-pop {
+  0% { transform: scale(0.9); }
+  55% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .guide-progress {
@@ -3152,6 +3221,19 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   color: var(--accent-strong);
 }
 
+/* 箭头一直轻轻往前挪：这一页是滑着读的，它是往下走的提示 */
+.guide-next::after {
+  content: "→";
+  margin-left: 0.375rem;
+  color: var(--accent-strong);
+  animation: nudge 1.4s ease-in-out infinite;
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
 .guide-next:active {
   transform: translateY(1px);
   border-color: var(--accent);
@@ -3204,17 +3286,47 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
  * 所以没有 JS、老内核或抓取器看到的都是完整内容。
  */
 .reveal {
-  transition: opacity 0.38s ease, transform 0.38s ease;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .reveal[data-shown="false"] {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(22px);
 }
 
 .reveal[data-shown="true"] {
   opacity: 1;
   transform: translateY(0);
+}
+
+/*
+ * 一节里的元素依次进场：先图，再标题，再正文，每个差 70ms。
+ * 整块一起淡入看不出动，错开之后眼睛会跟着往下走。
+ * 用动画而不是过渡，是因为要在祖先的 data-shown 变回 true 时重新播一遍。
+ */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal[data-shown="true"] > .guide-chapter > * {
+  animation: rise-in 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.reveal[data-shown="true"] > .guide-chapter > *:nth-child(2) { animation-delay: 0.07s; }
+.reveal[data-shown="true"] > .guide-chapter > *:nth-child(3) { animation-delay: 0.14s; }
+.reveal[data-shown="true"] > .guide-chapter > *:nth-child(4) { animation-delay: 0.21s; }
+.reveal[data-shown="true"] > .guide-chapter > *:nth-child(5) { animation-delay: 0.28s; }
+.reveal[data-shown="true"] > .guide-chapter > *:nth-child(n + 6) { animation-delay: 0.35s; }
+
+/* 头图再多一点：进场时轻轻放大到位 */
+@keyframes banner-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.reveal[data-shown="true"] > .guide-chapter > .guide-chapter-banner {
+  animation: banner-in 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 /* ---- 平板：正文放宽，插图放大 ---- */
@@ -3406,6 +3518,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   .scene-sway,
   .scene-float,
   .scene-float-slow,
+  .scene-drift,
   .scene-pulse,
   .scene-tip,
   .scene-beat,
@@ -3413,6 +3526,17 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   .scene-dash,
   .scene-rise,
   .scene-fade,
+  .scene-breathe,
+  .scene-spin,
+  .scene-bob,
+  .scene-wave,
+  .scene-blink,
+  .scene-twinkle,
+  .scene-glare,
+  .guide-next::after,
+  .guide-tab[data-active="true"],
+  .reveal[data-shown="true"] > .guide-chapter > *,
+  .reveal[data-shown="true"] > .guide-chapter > .guide-chapter-banner,
   .type-hero-card,
   .type-hero-copy {
     animation: none;
