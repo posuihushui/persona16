@@ -97,11 +97,26 @@ table {
   --accent-strong: #3a4585;
   --accent-soft: #eceefa;
   --accent-ink: #ffffff;
+  /* 光谱色带。比 --accent 浅一档：它画距离，不抢圆点 */
+  --accent-band: #dfe3f6;
 
   --warm: #c9743a;
   --warm-soft: #fbeee3;
 
-  /* 情境插画使用固定纸色，图中青绿不承担类型、得分或按钮状态。 */
+  /*
+   * 渐隐遮罩的透明起点。必须和对应的面同色再把 alpha 归零：
+   * 老 WebKit 不做预乘插值，写 transparent 或别的色会在中段透出灰边。
+   */
+  --surface-fade: rgba(251, 250, 247, 0);
+  --surface-raised-fade: rgba(255, 255, 255, 0);
+
+  /* 海报底色固定为浅色，上面的关键词标签用同一档半透明白 */
+  --poster-chip: rgba(255, 255, 255, 0.62);
+
+  /*
+   * 情境插画使用固定纸色，图中青绿不承担类型、得分或按钮状态。
+   * --scene-line 只给 --scene-tint 底的块用，中性底一律 --line。
+   */
   --scene-paper: #fbfaf7;
   --scene-tint: #edf5f2;
   --scene-line: #d6e7e1;
@@ -126,6 +141,11 @@ table {
 
   /* 刘海屏、挖孔屏、底部手势条。不支持 env() 的内核回落到 0 */
   --safe-top: 0px;
+  /*
+   * 头部吃掉的那段刘海高度。--safe-top 会在 .site-header + .page 上被归零，
+   * 页面里第二条吸顶元素要停在头部下沿，得用这个没被归零的副本来算。
+   */
+  --header-safe-top: 0px;
   --safe-bottom: 0px;
   --safe-left: 0px;
   --safe-right: 0px;
@@ -134,6 +154,7 @@ table {
 @supports (top: env(safe-area-inset-top)) {
   :root {
     --safe-top: env(safe-area-inset-top);
+    --header-safe-top: env(safe-area-inset-top);
     --safe-bottom: env(safe-area-inset-bottom);
     --safe-left: env(safe-area-inset-left);
     --safe-right: env(safe-area-inset-right);
@@ -164,9 +185,13 @@ table {
     --accent-strong: #a3ace9;
     --accent-soft: #1e2145;
     --accent-ink: #101124;
+    --accent-band: #2f3563;
 
     --warm: #e0965f;
     --warm-soft: #2a2013;
+
+    --surface-fade: rgba(16, 17, 36, 0);
+    --surface-raised-fade: rgba(25, 27, 51, 0);
 
     --scene-tint: #1b302f;
     --scene-line: #304b47;
@@ -222,6 +247,23 @@ a,
   margin-top: var(--stack-gap, 1rem);
 }
 
+/*
+ * 分层只有三层，任何新块都必须落在其中一层，不许自己发明第四种底色：
+ *
+ *   页面   --surface          body、吸顶头部、答题条（头部要和页面同色才不露缝）
+ *   卡     --surface-raised   + --line 边框；独立内容单元
+ *   凹陷   --surface-sunken   卡内部的槽：输入框、进度轨、标签、光谱轨
+ *
+ * 层级只能向内变深，不能反向：页面底色永远不作元素底色，
+ * 凹陷层永远不出现在卡外面。同级兄弟必须同层。
+ *
+ * 卡分两级，区别只在阴影，其余属性完全一致：
+ *   .card / .scene-hero / .checkout / .poster  整块内容单元，带 --shadow-card
+ *   .gets / .angle / .scene-card / .type-cell / .type-line / .type-link /
+ *   .dimension-scene / .share-preview          网格里的并列格，不带阴影
+ *
+ * 边框颜色跟随背景：中性底一律 --line，只有 --scene-tint 底才配 --scene-line。
+ */
 .card {
   background: var(--surface-raised);
   border: 1px solid var(--line);
@@ -272,7 +314,7 @@ a,
 .eyebrow {
   font-size: var(--step--1);
   letter-spacing: 0.12em;
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 .h1 {
@@ -469,7 +511,7 @@ nav a,
 }
 
 .price-was {
-  color: var(--ink-400);
+  color: var(--ink-500);
   text-decoration: line-through;
   font-size: var(--step-0);
   font-weight: 400;
@@ -499,7 +541,8 @@ nav a,
   padding: 0 1rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: var(--surface);
+  /* 输入框是卡里的凹陷，不是页面底色 */
+  background: var(--surface-sunken);
   color: var(--ink-900);
   /* iOS 在字号小于 16px 的输入框聚焦时会强制放大整个页面 */
   font-size: 16px;
@@ -570,7 +613,7 @@ nav a,
 .spectrum-end {
   font-size: var(--step--1);
   line-height: 1.3;
-  color: var(--ink-400);
+  color: var(--ink-500);
   white-space: nowrap;
 }
 
@@ -619,7 +662,7 @@ nav a,
 .spectrum-caption {
   margin: 0.375rem 0 0;
   font-size: var(--step--1);
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 .spectrum-note {
@@ -654,7 +697,7 @@ nav a,
   font-size: var(--step--1);
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 .type-cell {
@@ -718,7 +761,7 @@ nav a,
   margin-top: 1px;
   font-size: var(--step--1);
   line-height: 1.5;
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 /* ============ 首屏速览 ============ */
@@ -753,7 +796,7 @@ nav a,
   display: block;
   margin-top: 1px;
   font-size: var(--step--1);
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 /* ============ 对比双栏 ============ */
@@ -880,7 +923,7 @@ nav a,
 .quiz-index {
   margin: 0;
   font-size: var(--step--1);
-  color: var(--ink-400);
+  color: var(--ink-500);
   font-variant-numeric: tabular-nums;
 }
 
@@ -920,7 +963,7 @@ nav a,
 .quiz-back,
 .quiz-status {
   font-size: var(--step--1);
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 .quiz-back {
@@ -1063,7 +1106,8 @@ nav a,
 .poster {
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--poster-bg, #f3f2ef);
+  /* 兜底值比暖白页面沉一档，类型色板缺失时也能从页面上浮起来 */
+  background: var(--poster-bg, #f1eff0);
   box-shadow: var(--shadow-lift);
 }
 
@@ -1125,7 +1169,7 @@ nav a,
 }
 
 .poster-chips .chip {
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--poster-chip);
   color: inherit;
   font-weight: 500;
 }
@@ -1139,22 +1183,7 @@ nav a,
 
 /* ============ 落地页封面 ============ */
 
-.cover {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: #f4f2ee;
-  box-shadow: var(--shadow-card);
-}
-
-.cover-art {
-  display: block;
-  width: 100%;
-}
-
-.cover-body {
-  padding: 1.375rem 1.375rem 1.5rem;
-  color: #2f2e33;
-}
+/* 封面容器已被 .scene-hero 取代，只剩下面两条排版规则还在介绍页用 */
 
 .cover-title {
   margin: 0;
@@ -1207,7 +1236,7 @@ nav a,
   pointer-events: none;
   background-image: linear-gradient(
     to bottom,
-    rgba(251, 250, 247, 0),
+    var(--surface-fade),
     var(--surface) 92%
   );
 }
@@ -1215,7 +1244,7 @@ nav a,
 .card .locked-fade {
   background-image: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0),
+    var(--surface-raised-fade),
     var(--surface-raised) 92%
   );
 }
@@ -1223,7 +1252,7 @@ nav a,
 .locked-more {
   margin: 0.625rem 0 0;
   font-size: var(--step--1);
-  color: var(--ink-400);
+  color: var(--ink-500);
 }
 
 /* ============ 付款界面 ============ */
@@ -1322,8 +1351,8 @@ nav a,
   margin-left: 0.5rem;
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
-  background: var(--warm);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-ink);
   font-size: var(--step--1);
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -1422,7 +1451,6 @@ nav a,
 .share-preview img { width: 100%; border-radius: var(--radius-sm); }
 .share-url { margin-top: 0.75rem; letter-spacing: normal; }
 .spectrum-values { display: block; font-variant-numeric: tabular-nums; color: var(--ink-700); }
-.spectrum-caption, .spectrum-end { color: var(--ink-500); }
 .quiz-resume, .quiz-error {
   padding: 1rem;
   background: var(--accent-soft);
@@ -1433,7 +1461,6 @@ nav a,
 .quiz-resume-actions > * { margin: 0.25rem 0.5rem 0 0; }
 .quiz-save-warning { color: var(--ink-500); font-size: var(--step--1); }
 .quiz-back { min-height: 3rem; color: var(--ink-500); }
-.quiz-status { color: var(--ink-500); }
 .quiz-error .btn { margin-top: 0.75rem; }
 .quiz-error p { font-size: var(--step--1); }
 button, a, input, summary { touch-action: manipulation; }
@@ -1499,14 +1526,14 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   align-items: center;
   gap: 0.875rem;
   padding: 1rem 1.25rem 1.375rem;
-  border: 1px solid var(--scene-line);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
   box-shadow: var(--shadow-card);
 }
 
 .scene-hero-art {
-  width: 11.5rem;
+  width: 13.5rem;
   margin: 0 auto;
   border-radius: var(--radius-lg);
 }
@@ -1554,7 +1581,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 
 .scene-card {
   display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr);
+  grid-template-columns: 7.5rem minmax(0, 1fr);
   align-items: center;
   gap: 0.875rem;
   min-width: 0;
@@ -1590,7 +1617,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 }
 
 .scene-card--horizontal {
-  grid-template-columns: 5.75rem minmax(0, 1fr);
+  grid-template-columns: 6.75rem minmax(0, 1fr);
   border-color: var(--scene-line);
   background: var(--scene-tint);
 }
@@ -1608,13 +1635,13 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 .dimension-scene {
   min-width: 0;
   padding: 0.75rem;
-  border: 1px solid var(--scene-line);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-raised);
 }
 
 .dimension-scene-art {
-  max-width: 10rem;
+  max-width: 11.5rem;
   margin: 0 auto 0.75rem;
   border-radius: var(--radius-sm);
 }
@@ -1632,7 +1659,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 
 .scene-section-heading {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
+  grid-template-columns: 7rem minmax(0, 1fr);
   align-items: center;
   gap: 0.875rem;
 }
@@ -1665,7 +1692,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 
 .scene-note {
   display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr);
+  grid-template-columns: 7.5rem minmax(0, 1fr);
   align-items: center;
   gap: 1rem;
   padding: 1rem;
@@ -1713,7 +1740,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
     grid-column: 2;
     grid-row: 1;
     width: 100%;
-    max-width: 21rem;
+    max-width: 24rem;
   }
 
   .scene-hero-copy {
@@ -1743,12 +1770,12 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 
   .scene-card-grid > .scene-card .scene-card-art {
-    max-width: 11rem;
+    max-width: 13rem;
     margin: 0 auto;
   }
 
   .scene-card--horizontal {
-    grid-template-columns: 7rem minmax(0, 1fr);
+    grid-template-columns: 8.5rem minmax(0, 1fr);
     padding: 1rem 1.5rem;
   }
 
@@ -1770,8 +1797,8 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 
   .scene-section-heading {
-    grid-template-columns: 6rem minmax(0, 1fr);
-    gap: 1rem;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    gap: 1.25rem;
   }
 }
 
@@ -1787,12 +1814,12 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 
   .scene-hero-art {
-    width: 9rem;
+    width: 10.5rem;
   }
 
   .scene-card,
   .scene-note {
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 6rem minmax(0, 1fr);
     gap: 0.75rem;
     padding: 0.75rem;
   }
@@ -1806,7 +1833,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 
   .scene-section-heading {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
+    grid-template-columns: 5.75rem minmax(0, 1fr);
     gap: 0.625rem;
   }
 }
@@ -1817,7 +1844,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 
   .scene-hero-art {
-    width: 8rem;
+    width: 9.5rem;
   }
 }
 
@@ -1967,7 +1994,8 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 .footer-type {
   padding: 0.375rem 0;
   border-radius: 8px;
-  background: var(--surface);
+  /* 页脚是凹陷层，里面的格子要浮起来 */
+  background: var(--surface-raised);
   border: 1px solid var(--line);
   color: var(--ink-700);
   font-size: 0.75rem;
@@ -1987,7 +2015,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   width: 6rem;
   height: 6rem;
   border-radius: var(--radius-sm);
-  background: var(--surface);
+  background: var(--surface-raised);
 }
 
 .footer-legal {
@@ -2142,16 +2170,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   font-weight: 600;
 }
 
-/* 海报卡底色比原来沉一档，从暖白页面上浮起来 */
-.poster {
-  background: var(--poster-bg, #f1eff0);
-}
-
-.poster-chips .chip {
-  background: rgba(255, 255, 255, 0.62);
-  font-size: var(--step--1);
-}
-
 /* ============ 6. 答题页：量表两端不带褒贬 ============ */
 
 /*
@@ -2268,7 +2286,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 }
 
 .quiz-group[data-art="true"] {
-  grid-template-columns: 2.75rem minmax(0, 1fr);
+  grid-template-columns: 3.25rem minmax(0, 1fr);
 }
 
 .quiz-group-art {
@@ -2315,11 +2333,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 .countdown {
   background: var(--surface-sunken);
   color: var(--ink-700);
-}
-
-.price-off {
-  background: var(--accent-strong);
-  color: #fff;
 }
 
 .checkout-title {
@@ -2454,7 +2467,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 
 .gets-card-chips .chip {
   padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--poster-chip);
   font-size: 0.625rem;
 }
 
@@ -2481,13 +2494,13 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 
 .angle {
   padding: 0.75rem;
-  border: 1px solid var(--scene-line);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-raised);
 }
 
 .angle-art {
-  max-width: 7.5rem;
+  max-width: 9rem;
   margin: 0 auto 0.625rem;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -2512,11 +2525,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   margin: 0.25rem 0 0;
   font-size: var(--step--1);
   line-height: 1.6;
-  color: var(--ink-500);
-}
-
-/* 首屏速览的单位小字：12–13px 一律实色，不用 --ink-400（交接件验证清单） */
-.fact > span {
   color: var(--ink-500);
 }
 
@@ -2587,15 +2595,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   left: 75%;
 }
 
-/* 两端的中文名是 13px，按验证清单改实色 */
-.spectrum-end {
-  color: var(--ink-500);
-}
-
-.spectrum-caption {
-  color: var(--ink-500);
-}
-
 /*
  * 介绍页头卡是横的：118px 插画在左，标题在右。
  * 首页那张是竖的（184px 居中），两处刻意不同——首页要先给情绪，
@@ -2615,7 +2614,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 .spectrum-footnote {
   margin: 0;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--surface-sunken);
+  border-top: 1px solid var(--line);
   font-size: 0.75rem;
   line-height: 1.65;
   color: var(--ink-500);
@@ -2671,7 +2670,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   top: 0;
   bottom: 0;
   border-radius: 999px;
-  background: #dfe3f6;
+  background: var(--accent-band);
 }
 
 .spectrum--score .spectrum-dot {
@@ -2805,4 +2804,651 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   margin-top: 2px;
   font-size: 0.75rem;
   color: var(--ink-500);
+}
+
+/* ============ 14. 情境插画（矢量）与画面里的动画 ============ */
+/*
+ * 位图换成内联 SVG 之后，插画不再需要固定比例容器：svg 自带 viewBox，
+ * 宽度给 100%、高度 auto 就是正方形。旧的 <picture> 规则仍留着，
+ * 清单里还没换成矢量的资源继续走那条路径。
+ *
+ * 画面里的动作幅度都压得很小（2–6px、3–8 秒一轮）。
+ * 目的是让页面看起来是活的，不是让人盯着看动画，
+ * 所以任何一处都不承载信息，关掉动画不影响理解。
+ */
+.scene-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes scene-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes scene-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes scene-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes scene-tip {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+
+@keyframes scene-beat {
+  0%, 100% { transform: scale(1) translateY(0); }
+  40% { transform: scale(1.07) translateY(-3px); }
+}
+
+@keyframes scene-drop {
+  0% { opacity: 0; transform: translateY(-6px); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes scene-dash {
+  to { stroke-dashoffset: -32; }
+}
+
+@keyframes scene-rise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes scene-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+/*
+ * SVG 里的 transform-origin 默认相对整个画布的原点，写 center 会绕着画布中心转，
+ * 图形会飞出去。transform-box: fill-box 把参照系换成图形自己的包围盒，
+ * 这才是「原地摆动」的意思。Chrome 64 / Safari 11 起支持，在兼容基线之内。
+ */
+.scene-sway,
+.scene-tip,
+.scene-pulse,
+.scene-beat,
+.scene-rise,
+.scene-float,
+.scene-float-slow,
+.scene-fade {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.scene-sway { animation: scene-sway 6s ease-in-out infinite; transform-origin: bottom center; }
+.scene-float { animation: scene-float 5s ease-in-out infinite; }
+.scene-float-slow { animation: scene-float 7s ease-in-out infinite; }
+.scene-pulse { animation: scene-pulse 3.6s ease-in-out infinite; }
+.scene-tip { animation: scene-tip 5.5s ease-in-out infinite; }
+.scene-beat { animation: scene-beat 3.2s ease-in-out infinite; }
+.scene-drop { animation: scene-drop 2.8s ease-in-out infinite; }
+.scene-dash { animation: scene-dash 3s linear infinite; }
+.scene-rise { animation: scene-rise 4.5s ease-in-out infinite; transform-origin: bottom center; }
+.scene-fade { animation: scene-fade 5s ease-in-out infinite; }
+
+/* ============ 15. 类型解读页 ============ */
+/*
+ * 结构对着用户真正会搜的问题排：平时什么样、长处与难处、恋爱、友谊、工作。
+ * 每一节都是「一张图 + 一句结论 + 两段话」，用户扫一眼就知道这节讲什么，
+ * 不读完也不会漏掉结论。
+ *
+ * 窄屏是单栏加吸顶目录条；≥960px 变成左目录右正文的双栏，
+ * 目录换成常驻侧栏，吸顶条收起来（大屏上不需要它挡住内容）。
+ */
+.type-page {
+  padding-top: 1rem;
+  padding-bottom: calc(2rem + var(--safe-bottom));
+}
+
+.crumbs {
+  margin-bottom: 0.875rem;
+}
+
+/* 首屏：类型卡 + 标题。卡片仍是分享用的那一张，保证站内外看到的是同一个东西 */
+.type-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.type-hero-card {
+  animation: hero-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.type-hero-copy {
+  animation: hero-in 420ms cubic-bezier(0.22, 0.61, 0.36, 1) 80ms both;
+}
+
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.type-hero-copy > .eyebrow {
+  margin: 0;
+  color: var(--scene-ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.type-hero-title {
+  margin: 0.375rem 0 0;
+  font-size: var(--step-3);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.type-hero-lead {
+  margin: 0.5rem 0 0;
+  font-size: var(--step-0);
+  line-height: 1.7;
+  color: var(--ink-700);
+}
+
+.type-hero-meta {
+  margin-top: 0.75rem;
+}
+
+.type-hero-meta .chip {
+  font-size: 0.75rem;
+  color: var(--ink-500);
+}
+
+/* 吸顶目录条。头部本身高 3rem，再加上刘海，才是这条应该停的位置 */
+.guide-bar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: calc(3rem + var(--header-safe-top));
+  z-index: 15;
+  margin: 0 -1.25rem 1.25rem;
+  margin-left: calc(-1.25rem - var(--safe-left));
+  margin-right: calc(-1.25rem - var(--safe-right));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.guide-bar-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 0.5rem 0.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 目录条不出现横向滚动条：能滑但不占高度 */
+.guide-bar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.guide-tab {
+  flex: none;
+  margin-right: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  color: var(--ink-500);
+  font-size: var(--step--1);
+  line-height: 1.6;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.guide-tab[data-active="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.guide-progress {
+  height: 2px;
+  background: var(--surface-sunken);
+}
+
+.guide-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.guide-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* 侧栏目录只在大屏出现，窄屏用上面的吸顶条 */
+.guide-side {
+  display: none;
+}
+
+.guide-main > * + * {
+  margin-top: 1.75rem;
+}
+
+/* ---- 一节正文 ---- */
+
+.guide-chapter {
+  scroll-margin-top: 7rem;
+}
+
+/*
+ * 章节头图铺满整块。
+ *
+ * 之前是 84px 的小缩略图配标题，扫过去几乎看不见画的是什么。
+ * 改成 8:5 的横幅之后，手机上有 200px 高，图先说明这一节在讲什么，
+ * 标题和结论跟在下面，读的顺序是「看图 → 看结论 → 决定要不要读正文」。
+ */
+.guide-chapter-banner {
+  margin-bottom: 0.875rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.guide-chapter-title {
+  min-width: 0;
+  margin-bottom: 0.875rem;
+}
+
+.guide-chapter-index {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--scene-ink);
+}
+
+.guide-chapter-index > span {
+  margin-right: 0.5rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--scene-tint);
+  color: var(--scene-ink);
+  font-size: 0.625rem;
+  letter-spacing: 0.04em;
+}
+
+.guide-chapter-title .h2 {
+  margin: 0.25rem 0 0;
+  font-size: var(--step-2);
+  line-height: 1.4;
+}
+
+.guide-lead {
+  margin: 0.375rem 0 0;
+  font-size: var(--step-0);
+  line-height: 1.65;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.guide-para {
+  margin: 0.75rem 0 0;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink-700);
+}
+
+.guide-versus,
+.guide-points {
+  margin-top: 1rem;
+}
+
+.guide-points {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--scene-line);
+  border-radius: var(--radius);
+  background: var(--scene-tint);
+}
+
+.guide-points-title {
+  margin: 0 0 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--scene-ink);
+}
+
+.guide-points ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: var(--step--1);
+  line-height: 1.8;
+  color: var(--ink-700);
+}
+
+/* 每节末尾的「下一节」。移动端用户是滑着读的，这里给一个明确的往下走的入口 */
+.guide-next {
+  display: inline-flex;
+  align-items: baseline;
+  margin-top: 1rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  font-size: var(--step--1);
+  text-decoration: none;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.guide-next > span {
+  color: var(--ink-500);
+}
+
+.guide-next > b {
+  margin-left: 0.375rem;
+  color: var(--accent-strong);
+}
+
+.guide-next:active {
+  transform: translateY(1px);
+  border-color: var(--accent);
+}
+
+/* ---- 章节之外的几块 ---- */
+
+.guide-letters-hint,
+.guide-related-hint,
+.guide-all-hint,
+.guide-cta-hint {
+  margin: 0.375rem 0 0;
+}
+
+.guide-letters .letters {
+  margin-top: 0.875rem;
+}
+
+.guide-cta > * + * {
+  margin-top: 0.75rem;
+}
+
+.guide-cta .btn {
+  margin-top: 1rem;
+}
+
+.guide-cta-note {
+  text-align: center;
+}
+
+.guide-related .type-links,
+.guide-all-chips {
+  margin-top: 0.75rem;
+}
+
+.guide-chip {
+  color: var(--ink-700);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.guide-chip[data-current="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+/* ---- 进入视口时淡入 ---- */
+/*
+ * 默认可见。脚本跑起来之后才会把视口外的块标成 false，
+ * 所以没有 JS、老内核或抓取器看到的都是完整内容。
+ */
+.reveal {
+  transition: opacity 0.38s ease, transform 0.38s ease;
+}
+
+.reveal[data-shown="false"] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.reveal[data-shown="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- 平板：正文放宽，插图放大 ---- */
+
+@media (min-width: 640px) {
+  .type-page {
+    --page-max: 44rem;
+    padding-top: 1.75rem;
+  }
+
+  .type-hero {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .type-hero-title {
+    font-size: var(--step-4);
+  }
+
+  .guide-chapter-banner {
+    margin-bottom: 1.125rem;
+  }
+
+  .guide-chapter-title .h2 {
+    font-size: var(--step-3);
+  }
+
+  .versus.guide-versus {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guide-main > * + * {
+    margin-top: 2.25rem;
+  }
+}
+
+/* ---- 桌面：左目录右正文，目录常驻 ---- */
+
+@media (min-width: 960px) {
+  .type-page {
+    --page-max: 64rem;
+  }
+
+  .guide-bar {
+    display: none;
+  }
+
+  .guide-layout {
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .guide-side {
+    display: block;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 5.5rem;
+    padding: 1.125rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-card);
+  }
+
+  .guide-side-title {
+    margin: 0 0 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--ink-500);
+  }
+
+  .guide-side-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .guide-side-list li + li {
+    margin-top: 0.125rem;
+  }
+
+  .guide-side-list a {
+    display: block;
+    padding: 0.4375rem 0.5rem;
+    border-radius: 8px;
+    font-size: var(--step--1);
+    color: var(--ink-700);
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .guide-side-list a:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+
+  /* 读到哪一节，侧栏就标在哪一节。属性由目录组件在滚动时写上去 */
+  .guide-side-list a[data-active="true"] {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  .guide-side-list a[data-active="true"] > span {
+    color: var(--accent-strong);
+  }
+
+  .guide-side-list a > span {
+    margin-right: 0.5rem;
+    color: var(--ink-400);
+    font-size: 0.6875rem;
+  }
+
+  .guide-side-hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--ink-500);
+  }
+
+  .guide-side-cta {
+    margin-top: 0.875rem;
+  }
+
+  .type-hero {
+    grid-template-columns: 20rem minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .guide-chapter {
+    scroll-margin-top: 5.5rem;
+  }
+
+  /*
+   * 正文限宽 38rem：中文 15px 一行到 40 字左右就该换行了，
+   * 而两栏布局里剩下的那一栏有 40rem 以上。头图跟着同一条右边界，
+   * 图和字对齐，读起来是一栏而不是两块。
+   */
+  .guide-main {
+    max-width: 38rem;
+  }
+
+  /* 桌面上鼠标可以悬停：卡片轻轻抬一下，说明它可点 */
+  .type-link,
+  .guide-next {
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .type-link:hover,
+  .guide-next:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-card);
+  }
+
+  .guide-chip:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+}
+
+/* 超宽屏不再继续加宽正文：中文一行超过 40 字就难读了 */
+@media (min-width: 1280px) {
+  .type-page {
+    --page-max: 70rem;
+  }
+
+  .guide-layout {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 3.5rem;
+  }
+}
+
+@media (max-width: 359px) {
+  .guide-chapter-title .h2 {
+    font-size: var(--step-1);
+  }
+}
+
+/*
+ * 系统设置里要求减少动态效果时，画面全部静止：
+ * 插画里的呼吸、进场淡入、吸顶条的高亮过渡都关掉，内容一次到位。
+ */
+@media (prefers-reduced-motion: reduce) {
+  .scene-sway,
+  .scene-float,
+  .scene-float-slow,
+  .scene-pulse,
+  .scene-tip,
+  .scene-beat,
+  .scene-drop,
+  .scene-dash,
+  .scene-rise,
+  .scene-fade,
+  .type-hero-card,
+  .type-hero-copy {
+    animation: none;
+  }
+
+  .reveal,
+  .guide-tab,
+  .guide-next,
+  .type-link,
+  .guide-chip,
+  .guide-progress > span {
+    transition: none;
+  }
+
+  .reveal[data-shown="false"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * 介绍页封面在大屏上的两列。
+ *
+ * 上面第 10 节把封面改成了「118px 插画在左，标题在右」，那条规则写在文件末尾
+ * 且不带媒体查询，所以会盖掉 640px 断点里的两列设置，桌面上正文被挤进 7rem 的窄列，
+ * 标题断成两行。这里把大屏的两列补回来：插画在右，标题在左，与首页封面一致。
+ */
+@media (min-width: 640px) {
+  .illustrated-page--intro .scene-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.75rem;
+    padding: 1.75rem;
+  }
+
+  .illustrated-page--intro .scene-hero-art {
+    max-width: 21rem;
+    margin: 0 auto;
+  }
 }

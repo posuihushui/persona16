@@ -94,11 +94,41 @@ export type Paywall = {
 
 export type BlindSpot = { point: string; action: string };
 
+/**
+ * 公开解读的一节。
+ *
+ * 这是免费字段：写这个类型的共性，用日常说法，第三人称。
+ * 付费报告写的是「你」——针对本次作答的具体位置和可执行动作，两边不重叠。
+ * 章节结构由内容包决定，页面按顺序渲染，新增一节不需要改组件。
+ */
+export type GuideChapter = {
+  /** 锚点，也是目录里的顺序标识 */
+  id: string;
+  /** 目录上的短标签 */
+  nav: string;
+  /** content/illustrations.json 里的场景名 */
+  scene: string;
+  title: string;
+  /** 标题下的一句话，替用户先说出这一节的结论 */
+  lead: string;
+  paragraphs: string[];
+  /** 两栏对照，用于「长处与难处」这类小节 */
+  goodTitle?: string;
+  good?: string[];
+  hardTitle?: string;
+  hard?: string[];
+  /** 一组并列的短句，用于「常见的去处」这类小节 */
+  pointsTitle?: string;
+  points?: string[];
+};
+
 export type ResultDoc = {
   code: string;
   name: string;
   label: string;
   keywords: string[];
+  /** 免费的通俗解读，类型页正文 */
+  guide: GuideChapter[];
   core: string;
   atBest: string;
   atWorst: string;

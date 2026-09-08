@@ -123,7 +123,7 @@ content/tests/<slug>/
 
 ```json
 {
-  "free": ["name", "label", "keywords"],
+  "free": ["name", "label", "keywords", "guide"],
   "teaser": { "field": "core", "chars": 62 },
   "paid": ["core", "atBest", "atWorst", "cognition", "..."],
   "price": { "amount": 990, "currency": "CNY", "originalAmount": 1990 },
@@ -163,6 +163,7 @@ content/tests/<slug>/
 | `name` | string | 免费 | 类型名 |
 | `label` | string | 免费 | 一句人设标签,进分享卡 |
 | `keywords` | string[] | 免费 | 三个关键词 |
+| `guide` | `Chapter[]` | 免费 | 公开解读，类型页正文，见下 |
 | `core` | string | 付费，免费仅给预览 | 核心性格描述 |
 | `atBest` | string | 付费 | 最舒服的状态 |
 | `atWorst` | string | 付费 | 最容易累的状态 |
@@ -176,6 +177,43 @@ content/tests/<slug>/
 
 `dimensions` 不写在结果文件里,它由计分引擎按用户实际得分生成。
 
+### guide：公开解读
+
+类型页 `/t/<slug>/type/<code>` 的正文。分节写，每节回答一个用户真的会搜的问题。
+
+```json
+{
+  "id": "love",
+  "nav": "恋爱",
+  "scene": "love",
+  "title": "喜欢一个人的时候",
+  "lead": "他们表达喜欢的方式，是把事情办好。",
+  "paragraphs": ["……", "……"],
+  "goodTitle": "他们的长处", "good": ["……"],
+  "hardTitle": "他们的难处", "hard": ["……"],
+  "pointsTitle": "常见的去处", "points": ["……"]
+}
+```
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `id` | 是 | 锚点，小写字母开头，页面用它做目录跳转 |
+| `nav` | 是 | 目录上的短标签，不超过 6 字 |
+| `scene` | 是 | `content/illustrations.json` 里的场景名 |
+| `title` | 是 | 这一节的标题 |
+| `lead` | 是 | 一句话结论，替不读正文的用户先把话说完 |
+| `paragraphs` | 是 | 正文段落，至少一段 |
+| `good` / `hard` | 否 | 成对出现时渲染成两栏对照 |
+| `points` | 否 | 一组并列短句，渲染成一块浅底清单 |
+
+章节的数量、顺序和标题都由内容包决定，页面按顺序渲染，加一节不需要改组件。
+
+**写法规定。** 用日常说法，第三人称写这一类人的共性；不写「你」，不写针对某次作答的判断，不给可执行动作——那些是付费报告的内容。校验脚本会比对 `guide` 与付费字段，出现整段重复即阻断。
+
+**它是免费字段。** 免费与付费的分工是「共性 vs 你自己」，不是「短 vs 长」：用户在付费前应该已经能读懂这一类人大概是什么样，付费买到的是自己在四条轴上的具体位置、五条盲点各配一个动作这类只对他本人成立的内容。
+
+**只增加公开解读不升版本号。** 题目、权重、计分和全部付费字段没有变化时，历史作答的渲染结果一模一样，因此不构成换版。改题目、权重、结果映射仍然按上面「版本与冻结」的规则升 minor 并归档。
+
 ## 校验
 
 `npm run check:content` 检查:
@@ -188,5 +226,8 @@ content/tests/<slug>/
 - `dichotomy` 模式下所有类型码组合都有对应结果文件
 - 结果文件覆盖 `paywall.json` 声明的全部键,且 `free` 与 `paid` 不重叠
 - `withOthers` 引用的类型码存在
+- `guide` 至少三节，每节有 `id`/`nav`/`scene`/`title`/`lead` 和正文，`id` 唯一且可做锚点
+- `guide` 引用的场景在 `content/illustrations.json` 里存在
+- `guide` 与付费字段没有整段重复
 
 校验不通过不允许提交。

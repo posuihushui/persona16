@@ -3,7 +3,8 @@
   "free": [
     "name",
     "label",
-    "keywords"
+    "keywords",
+    "guide"
   ],
   "teaser": {
     "field": "core",

@@ -4,13 +4,14 @@ import { notFound } from "next/navigation";
 import { Faq } from "@/components/Faq";
 import { LetterBreakdown } from "@/components/LetterBreakdown";
 import { LockedPreview } from "@/components/LockedPreview";
-import { SectionHead } from "@/components/Icon";
 import { TypePoster } from "@/components/TypePoster";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { SceneSectionHeading } from "@/components/SceneIllustration";
+import { SceneIllustration } from "@/components/SceneIllustration";
+import { Reveal, TypeGuideNav } from "@/components/TypeGuide";
 import { freeView, listPublishedPacks, listResultCodes, loadPack } from "@/lib/content";
+import type { GuideChapter, ResultDoc } from "@/lib/types";
 import { absolute, breadcrumbSchema, faqSchema, typeArticleSchema } from "@/lib/seo";
 import illustrations from "../../../../../../content/illustrations.json";
 
@@ -21,10 +22,17 @@ import illustrations from "../../../../../../content/illustrations.json";
  * （「INFP 是什么样的人」「ESTJ 适合什么工作」）。落地页也是运营投放的承接页，
  * 用户看完某个类型的短视频过来，接住的应该是这一页而不是首页。
  *
+ * 正文分节，每节讲一个用户真的会搜的话题：平时什么样、长处与难处、恋爱、友谊、工作。
+ * 章节顺序、标题、配图全部来自内容包的 guide 字段，加一节不需要动这个文件。
+ * 用词是日常说法、第三人称，讲的是这一类人的共性；
+ * 讲「你」的那部分（本次作答的具体位置和可执行动作）属于付费报告，不在这一页。
+ *
  * 只渲染免费字段。付费内容不出现在任何可索引页面里。
  */
 
 export const dynamic = "force-static";
+
+const copy = illustrations.typeGuide;
 
 export function generateStaticParams() {
   return listPublishedPacks().flatMap((pack) =>
@@ -44,9 +52,9 @@ export async function generateMetadata({
     if (!doc) return { title: "类型不存在" };
 
     const title = `${doc.code} ${doc.name}是什么样的人？${doc.label}`;
-    // 描述只用免费预览。meta 和结构化数据都是公开内容，不能从这里漏出付费正文
-    const preview = freeView(doc, pack.paywall).teaser ?? doc.label;
-    const description = `${doc.code}（${doc.name}）的性格解读：${preview}`;
+    // 描述用公开解读的第一句。付费正文不能从 meta 漏出去
+    const lead = doc.guide?.[0]?.lead ?? doc.label;
+    const description = `${doc.code}（${doc.name}）的性格解读：${lead}这里用日常的话讲他们平时的样子、长处与难处，以及在恋爱、友谊和工作里的相处方式。`;
 
     return {
       title,
@@ -66,6 +74,82 @@ export async function generateMetadata({
   }
 }
 
+/** 一节正文。结构由内容包声明，这里只负责怎么摆。 */
+function Chapter({
+  chapter,
+  index,
+  next,
+}: {
+  chapter: GuideChapter;
+  index: number;
+  next?: GuideChapter;
+}) {
+  return (
+    <section id={chapter.id} className="guide-chapter">
+      {/* 章节头图铺满整块：这一页很长，用户是滑着读的，图先说明这一节在讲什么 */}
+      <SceneIllustration
+        scene={chapter.scene}
+        className="guide-chapter-banner"
+        variant="banner"
+        decorative
+      />
+      <div className="guide-chapter-title">
+        <p className="guide-chapter-index">
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          {chapter.nav}
+        </p>
+        <h2 className="h2">{chapter.title}</h2>
+        <p className="guide-lead">{chapter.lead}</p>
+      </div>
+
+      {chapter.paragraphs.map((para) => (
+        <p className="guide-para" key={para.slice(0, 12)}>
+          {para}
+        </p>
+      ))}
+
+      {chapter.good && chapter.hard && (
+        <div className="versus guide-versus">
+          <div className="versus-col is-good">
+            <h3>{chapter.goodTitle ?? "长处"}</h3>
+            <ul>
+              {chapter.good.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="versus-col is-bad">
+            <h3>{chapter.hardTitle ?? "难处"}</h3>
+            <ul>
+              {chapter.hard.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {chapter.points && chapter.points.length > 0 && (
+        <div className="guide-points">
+          {chapter.pointsTitle && <p className="guide-points-title">{chapter.pointsTitle}</p>}
+          <ul>
+            {chapter.points.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {next && (
+        <a className="guide-next" href={`#${next.id}`}>
+          <span>{copy.nextLabel}</span>
+          <b>{next.nav}</b>
+        </a>
+      )}
+    </section>
+  );
+}
+
 export default async function TypePage({
   params,
 }: {
@@ -79,13 +163,15 @@ export default async function TypePage({
   } catch {
     notFound();
   }
-  const doc = pack.results[code];
+  const doc: ResultDoc | undefined = pack.results[code];
   if (!doc || pack.meta.status !== "published") notFound();
 
   const allCodes = listResultCodes(pack);
 
   // 这是公开页，付费正文不能整段出现，否则等于绕开付费墙
   const view = freeView(doc, pack.paywall);
+  const chapters = doc.guide ?? [];
+  const navItems = chapters.map((chapter) => ({ id: chapter.id, nav: chapter.nav }));
 
   return (
     <>
@@ -94,10 +180,10 @@ export default async function TypePage({
         backHref={`/t/${slug}`}
         action={{ label: "开始测试", href: `/t/${slug}/quiz` }}
       />
-      <main className="page" style={{ paddingTop: "1.5rem", paddingBottom: "2rem" }}>
+      <main className="page type-page">
         <JsonLd
           data={[
-            typeArticleSchema(pack, doc, view.teaser ?? doc.label),
+            typeArticleSchema(pack, doc, chapters[0]?.lead ?? doc.label),
             breadcrumbSchema([
               { name: "首页", path: "/" },
               { name: pack.meta.name, path: `/t/${slug}` },
@@ -108,7 +194,7 @@ export default async function TypePage({
           ]}
         />
 
-        <nav className="small muted" style={{ marginBottom: "1.25rem" }}>
+        <nav className="small muted crumbs">
           <Link href="/">首页</Link>
           {" / "}
           <Link href={`/t/${slug}`}>{pack.meta.name}</Link>
@@ -118,87 +204,122 @@ export default async function TypePage({
           <span>{doc.code}</span>
         </nav>
 
-        <div className="stack" style={{ "--stack-gap": "1.75rem" } as React.CSSProperties}>
-          <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} compact />
-
-          <section className="card stack" style={{ "--stack-gap": "1.25rem" } as React.CSSProperties}>
-            <SectionHead
-              icon="layers"
-              title={`${doc.code} 这四个字母的意思`}
-              hint="深色的一端就是这个类型所在的那边。示意位置，不代表你的实际作答。"
-            />
-            {/* 这里不放光谱轴：这一页没有任何一次作答，画出圆点会被读成分数 */}
-            <LetterBreakdown code={doc.code} />
-          </section>
-
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-            {/* 海报里的类型码是图形排版，这里承担页面真正的 h1 */}
-            <SceneSectionHeading scene={illustrations.placements.typeCore}>
-              <h1 className="h2">{doc.code} {doc.name}大概是什么样的人</h1>
-            </SceneSectionHeading>
-            <LockedPreview teaser={view.teaser ?? ""} remaining={view.teaserRemaining} />
-          </section>
-
-          <section className="paywall stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
-            <h2 className="h3">想知道自己是不是 {doc.code}？</h2>
-            <p className="small" style={{ margin: 0 }}>
-              上面写的是 {doc.code} 这个类型的共性。你自己在四个维度上偏到什么程度，
-              要做完 {pack.meta.questionCount} 道题才知道。测完免费出结果。
+        <header className="type-hero">
+          <div className="type-hero-card">
+            <TypePoster code={doc.code} doc={doc} testName={pack.meta.name} compact />
+          </div>
+          <div className="type-hero-copy">
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h1 className="type-hero-title">
+              {doc.code} {doc.name}是什么样的人
+            </h1>
+            <p className="type-hero-lead">{copy.heroLead}</p>
+            <p className="wrap type-hero-meta">
+              <span className="chip">{chapters.length} 节</span>
+              <span className="chip">约 3 分钟读完</span>
+              <span className="chip">免费</span>
             </p>
-            <Link className="btn btn-block" href={`/t/${slug}/quiz`}>
-              开始测试，约 {pack.meta.estimatedMinutes} 分钟
-            </Link>
-          </section>
+          </div>
+        </header>
 
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-            <SceneSectionHeading scene={illustrations.placements.typeRelated}>
-              <div className="stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-                <h2 className="h2">{doc.code} 和这几类人怎么相处</h2>
-                <p className="small muted" style={{ margin: 0 }}>
-                  下面是这几个类型的入口，具体的相处提示在深度报告里。
-                </p>
-              </div>
-            </SceneSectionHeading>
-            <div className="type-links">
-              {doc.withOthers.map((item) => {
-                const other = pack.results[item.code];
-                return (
-                  <Link key={item.code} href={`/t/${slug}/type/${item.code}`} className="type-link">
-                    <b>{item.code}</b>
-                    <span>{other?.name ?? ""}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
+        {navItems.length > 0 && <TypeGuideNav chapters={navItems} />}
 
-          <Faq items={pack.meta.seo.faq} />
-
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-            <h2 className="h3">全部 16 种类型</h2>
-            <p className="wrap" style={{ margin: 0 }}>
-              {allCodes.map((c) => (
-                <Link
-                  key={c}
-                  href={`/t/${slug}/type/${c}`}
-                  className="chip"
-                  aria-current={c === code ? "page" : undefined}
-                  style={{
-                    background: c === code ? "var(--accent)" : "var(--surface-sunken)",
-                    color: c === code ? "var(--accent-ink)" : "var(--ink-700)",
-                    textDecoration: "none",
-                  }}
-                >
-                  {c}
-                </Link>
+        <div className="guide-layout">
+          <aside className="guide-side">
+            <p className="guide-side-title">{copy.tocTitle}</p>
+            <ol className="guide-side-list">
+              {chapters.map((chapter, i) => (
+                <li key={chapter.id}>
+                  <a href={`#${chapter.id}`} data-side-for={chapter.id}>
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    {chapter.nav}
+                  </a>
+                </li>
               ))}
-            </p>
-          </section>
+            </ol>
+            <p className="guide-side-hint">{copy.tocHint}</p>
+            <Link className="btn btn-block guide-side-cta" href={`/t/${slug}/quiz`}>
+              开始测试
+            </Link>
+          </aside>
 
-          <div className="notice">{pack.meta.disclaimer}</div>
+          <div className="guide-main">
+            {chapters.map((chapter, i) => (
+              <Reveal key={chapter.id}>
+                <Chapter chapter={chapter} index={i} next={chapters[i + 1]} />
+              </Reveal>
+            ))}
 
-          <SiteFooter slug={slug} codes={allCodes} />
+            <Reveal>
+              <section className="card guide-letters">
+                <h2 className="h3">{copy.lettersTitle.replace("{code}", doc.code)}</h2>
+                <p className="small muted guide-letters-hint">{copy.lettersHint}</p>
+                {/* 这里不放光谱轴：这一页没有任何一次作答，画出圆点会被读成分数 */}
+                <LetterBreakdown code={doc.code} />
+              </section>
+            </Reveal>
+
+            <Reveal>
+              <section className="paywall guide-cta">
+                <h2 className="h3">{copy.ctaTitle.replace("{code}", doc.code)}</h2>
+                <p className="small guide-cta-hint">{copy.ctaHint}</p>
+                {view.teaser && <LockedPreview teaser={view.teaser} remaining={view.teaserRemaining} />}
+                <Link className="btn btn-block" href={`/t/${slug}/quiz`}>
+                  开始测试，约 {pack.meta.estimatedMinutes} 分钟
+                </Link>
+                <p className="small muted guide-cta-note">
+                  {pack.meta.questionCount} 道日常情境题，测完免费出结果。
+                </p>
+              </section>
+            </Reveal>
+
+            <Reveal>
+              <section className="guide-related">
+                <h2 className="h2">{copy.relatedTitle.replace("{code}", doc.code)}</h2>
+                <p className="small muted guide-related-hint">{copy.relatedHint}</p>
+                <div className="type-links">
+                  {doc.withOthers.map((item) => {
+                    const other = pack.results[item.code];
+                    return (
+                      <Link key={item.code} href={`/t/${slug}/type/${item.code}`} className="type-link">
+                        <b>{item.code}</b>
+                        <span>{other?.name ?? ""}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            </Reveal>
+
+            <Reveal>
+              <Faq items={pack.meta.seo.faq} />
+            </Reveal>
+
+            <Reveal>
+              <section className="guide-all">
+                <h2 className="h3">{copy.allTitle}</h2>
+                <p className="small muted guide-all-hint">{copy.allHint}</p>
+                <p className="wrap guide-all-chips">
+                  {allCodes.map((c) => (
+                    <Link
+                      key={c}
+                      href={`/t/${slug}/type/${c}`}
+                      className="chip guide-chip"
+                      aria-current={c === code ? "page" : undefined}
+                      data-current={c === code ? "true" : undefined}
+                    >
+                      {c}
+                    </Link>
+                  ))}
+                </p>
+              </section>
+            </Reveal>
+
+            <div className="notice">{pack.meta.disclaimer}</div>
+          </div>
         </div>
+
+        <SiteFooter slug={slug} codes={allCodes} />
       </main>
     </>
   );

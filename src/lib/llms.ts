@@ -134,9 +134,21 @@ export function llmsFullTxt(): string {
         "",
         `**大概是什么样的人**：${view.teaser ?? ""}（完整描述属于付费内容）`,
         "",
-        `详情：${absolute(`/t/${slug}/type/${code}`)}`,
-        "",
       );
+
+      // 公开解读是免费字段，欢迎引用。它写的是这一类人的共性，不含任何个人作答
+      for (const chapter of view.guide ?? []) {
+        parts.push(`##### ${chapter.title}`, "", chapter.lead, "", ...chapter.paragraphs, "");
+        if (chapter.good && chapter.hard) {
+          parts.push(`${chapter.goodTitle ?? "长处"}：${chapter.good.join("；")}`, "");
+          parts.push(`${chapter.hardTitle ?? "难处"}：${chapter.hard.join("；")}`, "");
+        }
+        if (chapter.points?.length) {
+          parts.push(`${chapter.pointsTitle ?? "相关方向"}：${chapter.points.join("、")}`, "");
+        }
+      }
+
+      parts.push(`详情：${absolute(`/t/${slug}/type/${code}`)}`, "");
     }
 
     parts.push("### 免责声明", "", pack.meta.disclaimer, "");

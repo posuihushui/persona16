@@ -30,6 +30,20 @@ function readJson(file) {
   }
 }
 
+/**
+ * 插画清单里声明的场景名。内容包里的章节只能引用这里有的场景。
+ * 清单不存在时（比如换版测试的临时内容根目录）跳过这项检查，不误报。
+ */
+const sceneNames = (() => {
+  const file = path.join(process.cwd(), "content", "illustrations.json");
+  if (!fs.existsSync(file)) return null;
+  try {
+    return new Set(Object.keys(JSON.parse(fs.readFileSync(file, "utf8")).assets ?? {}));
+  } catch {
+    return null;
+  }
+})();
+
 function enumerateCodes(scoring) {
   if (scoring.mode !== "dichotomy") return [];
   const order = scoring.codeOrder ?? scoring.dimensions.map((d) => d.id);
@@ -287,6 +301,49 @@ function validatePack(slug, dir = path.join(ROOT, slug), expectedSlug = slug, ex
     for (const bs of doc.blindSpots ?? []) {
       if (!bs.point || !bs.action) {
         fail(slug, `results/${code}.json 的 blindSpots 每条必须同时有 point 和 action`);
+      }
+    }
+
+    // 公开解读：类型页的免费正文，章节结构由内容包声明，页面按顺序渲染
+    if (Array.isArray(doc.guide)) {
+      if (doc.guide.length < 3) {
+        fail(slug, `results/${code}.json 的 guide 至少要 3 节，当前 ${doc.guide.length} 节`);
+      }
+      const chapterIds = new Set();
+      doc.guide.forEach((ch, i) => {
+        for (const key of ["id", "nav", "scene", "title", "lead"]) {
+          if (typeof ch?.[key] !== "string" || ch[key].trim() === "") {
+            fail(slug, `results/${code}.json 的 guide[${i}] 缺少 ${key}`);
+          }
+        }
+        if (ch?.id) {
+          if (chapterIds.has(ch.id)) fail(slug, `results/${code}.json 的 guide 章节 id 重复: ${ch.id}`);
+          chapterIds.add(ch.id);
+          if (!/^[a-z][a-z0-9-]{0,31}$/.test(ch.id)) {
+            fail(slug, `results/${code}.json 的 guide 章节 id 必须是合法锚点: ${ch.id}`);
+          }
+        }
+        if (ch?.scene && sceneNames && !sceneNames.has(ch.scene)) {
+          fail(slug, `results/${code}.json 的 guide[${i}] 引用了 illustrations.json 里没有的场景 ${ch.scene}`);
+        }
+        if (!Array.isArray(ch?.paragraphs) || ch.paragraphs.length === 0) {
+          fail(slug, `results/${code}.json 的 guide[${i}] 至少要有一段正文`);
+        }
+        if (ch?.nav && ch.nav.length > 6) {
+          warn(slug, `results/${code}.json 的 guide[${i}].nav「${ch.nav}」超过 6 字，窄屏目录会挤`);
+        }
+      });
+      // 免费解读和付费正文不能是同一批句子，否则等于把报告免费送出去
+      const paidText = paid
+        .map((key) => JSON.stringify(doc[key] ?? ""))
+        .join("\n");
+      for (const ch of doc.guide) {
+        for (const para of ch?.paragraphs ?? []) {
+          const probe = para.slice(0, 24);
+          if (probe.length >= 12 && paidText.includes(probe)) {
+            fail(slug, `results/${code}.json 的 guide 与付费字段有整段重复：「${probe}」`);
+          }
+        }
       }
     }
   }
