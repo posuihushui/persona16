@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { loadPack } from "../src/lib/content.ts";
-import { posterCardMarkup, wrapText, posterAxes, POSTER_GOLD } from "../src/lib/poster.ts";
+import { posterCardMarkup, posterAxes, POSTER_GOLD } from "../src/lib/poster.ts";
 import type { Dimension, DimensionScore } from "../src/lib/types.ts";
 
 /**
@@ -31,12 +31,10 @@ function card(code: string) {
   return posterCardMarkup({
     code: doc.code,
     name: doc.name,
-    label: doc.label,
     creed: doc.creed,
     creedLabel: "人生信条",
     tags: doc.tags,
     brand: pack.meta.name,
-    ring: "16型人格测试　·　16型人格测试　·　",
     tone: TONE,
     artMarkup: ART,
   });
@@ -79,7 +77,6 @@ test("分享卡带上信条、类型码、名字和一句标签", () => {
     assert.ok(svg.includes(doc.creed), `${code} 缺信条`);
     assert.ok(svg.includes(doc.name), `${code} 缺类型名`);
     assert.ok(svg.includes(`>${doc.code}<`), `${code} 缺类型码`);
-    for (const line of wrapText(doc.label, 20)) assert.ok(svg.includes(line), `${code} 缺 label`);
     assert.ok(svg.includes(POSTER_GOLD), `${code} 缺印章的品牌金`);
     assert.ok(svg.includes(`viewBox="0 0 ${CANVAS} 1200"`), `${code} 画布尺寸不对`);
   }
@@ -107,9 +104,8 @@ test("标签特别长时自动减条数，不和上面的文字叠在一起", ()
   const long = ["一二三四五六七八九十一二", "一二三四五六七八九十一三", "一二三四五六七八九十一四", "一二三四五六七八九十一五", "一二三四五六七八九十一六", "一二三四五六七八九十一七"];
   const svg = posterCardMarkup({
     code: "INFP", name: "内燃灯",
-    label: "这是一句被刻意写到需要断成三行的很长很长的类型描述文字用来压测版面",
     creed: "意义比有用重要", creedLabel: "人生信条", tags: long,
-    brand: "16型人格测试", ring: "测试", tone: TONE, artMarkup: ART,
+    brand: "16型人格测试", tone: TONE, artMarkup: ART,
   });
   const band = bandTop(svg);
   const boxes = pills(svg);

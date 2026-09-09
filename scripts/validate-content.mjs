@@ -323,6 +323,36 @@ function validatePack(slug, dir = path.join(ROOT, slug), expectedSlug = slug, ex
       }
     }
 
+    /*
+     * 信条不能是 label 的复述。
+     *
+     * 两者的分工是「自己怎么说」对「别人怎么看」，写重了卡上会连着出现两句几乎一样的话。
+     * 第一版就撞了三个：ISTP 的 label 是「先别解释，让我上手试试」，信条写成了「让我上手试试」。
+     * 这里按去掉标点后的字面重合度判断，只拦明显复述，不管意思相近。
+     */
+    if (typeof doc.creed === "string" && typeof doc.label === "string") {
+      const bare = (text) => text.replace(/[^\p{L}\p{N}]/gu, "");
+      const a = bare(doc.creed);
+      const b = bare(doc.label);
+      const shorter = a.length <= b.length ? a : b;
+      const longer = a.length <= b.length ? b : a;
+      let shared = 0;
+      for (let size = shorter.length; size >= 4 && !shared; size -= 1) {
+        for (let i = 0; i + size <= shorter.length; i += 1) {
+          if (longer.includes(shorter.slice(i, i + size))) {
+            shared = size;
+            break;
+          }
+        }
+      }
+      if (shared >= 4 && shared / shorter.length >= 0.5) {
+        fail(
+          slug,
+          `results/${code}.json 的 creed 与 label 有整段重复（「${shorter.slice(0, shared + 2)}…」）：信条要写这类人自己会说的话，不要复述 label`,
+        );
+      }
+    }
+
     // 公开解读：类型页的免费正文，章节结构由内容包声明，页面按顺序渲染
     if (Array.isArray(doc.guide)) {
       if (doc.guide.length < 3) {

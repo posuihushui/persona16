@@ -35,6 +35,16 @@ export function TypeFilter({
       else card.setAttribute("data-filtered", "true");
     });
 
+    /*
+     * 一整组被筛空时连组标题一起收起来。
+     * 只收卡片的话，选中 E 之后 IJ 和 IP 两个标题还立在那里，下面什么都没有。
+     */
+    document.querySelectorAll<HTMLElement>(".code-group").forEach((group) => {
+      const left = group.querySelectorAll("[data-type-code]:not([data-filtered])").length;
+      if (left > 0) group.removeAttribute("data-filtered");
+      else group.setAttribute("data-filtered", "true");
+    });
+
     // 一组里选了两个互斥的字母会一张都不剩，直接退回全部，别让用户对着空白
     if (shown === 0 && picked.length > 0) setPicked([]);
   }, [picked]);
@@ -49,6 +59,11 @@ export function TypeFilter({
 
   return (
     <div className="type-filter">
+      {/*
+       * 一条轴的两个字母包在一起，成对换行。
+       * 九个 chip 平铺时最后一个会单独掉到第二行，看着像漏掉的；
+       * 成对之后既不会落单，也顺手把「同一条轴只能选一边」画出来了。
+       */}
       <div className="wrap type-filter-row">
         <button
           type="button"
@@ -58,19 +73,21 @@ export function TypeFilter({
         >
           {allLabel}
         </button>
-        {groups.map((group) =>
-          group.map((letter) => (
-            <button
-              key={letter}
-              type="button"
-              className="chip type-filter-chip"
-              data-active={picked.indexOf(letter) >= 0 ? "true" : undefined}
-              onClick={() => toggle(letter, group)}
-            >
-              {letter}
-            </button>
-          )),
-        )}
+        {groups.map((group) => (
+          <span className="type-filter-pair" key={group.join("")}>
+            {group.map((letter) => (
+              <button
+                key={letter}
+                type="button"
+                className="chip type-filter-chip"
+                data-active={picked.indexOf(letter) >= 0 ? "true" : undefined}
+                onClick={() => toggle(letter, group)}
+              >
+                {letter}
+              </button>
+            ))}
+          </span>
+        ))}
       </div>
       <p className="small muted type-filter-hint">{hint}</p>
     </div>

@@ -25,17 +25,6 @@ import type { Dimension, DimensionScore } from "@/lib/types";
 export const POSTER_GOLD = "#e8b230";
 export const POSTER_GOLD_INK = "#5a3d05";
 
-/** 断行。中文按字数切，够用且两个渲染器算出来一样。 */
-export function wrapText(text: string, perLine: number): string[] {
-  const lines: string[] = [];
-  for (const character of Array.from(text)) {
-    const last = lines[lines.length - 1];
-    if (last === undefined || Array.from(last).length >= perLine) lines.push(character);
-    else lines[lines.length - 1] = last + character;
-  }
-  return lines;
-}
-
 /** 一条轴在海报上的样子。percent 是命中那一端的强度，50 到 100。 */
 export type PosterAxis = {
   id: string;
@@ -93,47 +82,30 @@ export function escapeXml(value: string): string {
 /**
  * 骑缝章。
  *
- * 一圈绕排的小字加中间一个大字。绕排没有用 textPath：那要引用同文档里的 path，
- * 分享卡是塞进 <img> 再画进 canvas 的，隔离渲染下老内核对 textPath 的支持不齐，
- * 而印章画错正好属于「分享卡和页面长得不一样」那类很难被发现的问题。
- * 这里改成逐字定位加逐字旋转，任何内核算出来都一样。
+ * 原来一圈绕排着品牌名，但那行字在 124px 的章上只有 12px，
+ * 转成 PNG 又被微信压一道之后糊成一团噪点，而且有一半是倒着的。
+ * 改成一枚干净的金币：实心圆、一道内圈细线、中间一个大字。
+ * 在卡上是 124px、在结果页上是 52px，两个尺寸都认得出来。
+ * 品牌名在卡的左上角已经出现过一次，不必在这里再说一遍。
  */
 export function sealMarkup({
   center,
   radius,
-  ring,
   middle,
   fill = POSTER_GOLD,
   ink = POSTER_GOLD_INK,
 }: {
   center: string;
   radius: number;
-  /** 绕圈的那行小字 */
-  ring: string;
-  /** 中间的大字 */
+  /** 中间的字 */
   middle: string;
   fill?: string;
   ink?: string;
 }): string {
-  const characters = Array.from(ring);
-  const step = 360 / Math.max(characters.length, 1);
-  const textRadius = radius - radius * 0.22;
-  const glyphs = characters
-    .map((character, i) => {
-      const angle = -90 + i * step;
-      const radian = (angle * Math.PI) / 180;
-      const x = Math.cos(radian) * textRadius;
-      const y = Math.sin(radian) * textRadius;
-      // 每个字自己转到切线方向，整圈读起来才是连贯的一行
-      return `<text x="0" y="0" transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${(angle + 90).toFixed(2)})" text-anchor="middle" font-size="${(radius * 0.2).toFixed(1)}" letter-spacing="0.5">${escapeXml(character)}</text>`;
-    })
-    .join("");
-
   return `<g transform="translate(${center})">
     <circle r="${radius}" fill="${fill}"/>
-    <circle r="${radius - radius * 0.1}" fill="none" stroke="${ink}" stroke-width="1.5" opacity="0.45"/>
-    <g fill="${ink}" opacity="0.85">${glyphs}</g>
-    <text x="0" y="${(radius * 0.16).toFixed(1)}" text-anchor="middle" font-size="${(radius * 0.52).toFixed(1)}" font-weight="700" fill="${ink}">${escapeXml(middle)}</text>
+    <circle r="${(radius - radius * 0.13).toFixed(1)}" fill="none" stroke="${ink}" stroke-width="2" opacity="0.4"/>
+    <text x="0" y="${(radius * 0.2).toFixed(1)}" text-anchor="middle" font-size="${(radius * 0.62).toFixed(1)}" font-weight="700" fill="${ink}">${escapeXml(middle)}</text>
   </g>`;
 }
 
@@ -164,38 +136,23 @@ function flowTags(tags: string[], left: number, right: number, fontSize: number,
   return { boxes, height: boxes.length ? row * rowHeight + pill : 0, pill };
 }
 
-/**
- * 分享卡。900×1200，被塞进 <img> 再画进 canvas 转成 PNG。
- *
- * 这张卡是公开的类型卡，会被转发，所以**不含任何一次作答的数据**：
- * 没有四条轴的位置，也没有 attemptId。个人的那四个位置只出现在结果页上那张
- * 用户自己截图的海报里（见 TypePoster 的色条）。
- *
- * 排版顺序和网页那张海报一致：几何、信条、类型码与名字、一句标签、口语标签、走马带。
- * 两边的内容与顺序都从这个文件来，不会各写各的。
- */
 export function posterCardMarkup({
   code,
   name,
-  label,
   creed,
   creedLabel,
   tags,
   brand,
-  ring,
   tone,
   artMarkup,
 }: {
   code: string;
   name: string;
-  label: string;
   creed?: string;
   creedLabel: string;
   tags: string[];
   /** 顶部的小字，用测试名 */
   brand: string;
-  /** 印章绕圈的那行字 */
-  ring: string;
   tone: { card: string; ink: string; deep: string; base: string; washB: string };
   /** typeArtMarkup(code) 的结果，几何两边共用同一份 */
   artMarkup: string;
@@ -205,53 +162,53 @@ export function posterCardMarkup({
   const right = 836;
   const bandTop = 1124;
 
-  const labelLines = wrapText(label, 20);
-  const labelSize = labelLines.length > 2 ? 28 : 32;
-
   /*
-   * 上半部从顶往下排。位置写死是因为几何图形的高度是固定的，
-   * 只有 label 的行数会变，往下顺延就够了。
+   * 构图：上面一整块深色，主视觉压住它的下缘，剩下的浅色区放标签。
+   *
+   * 之前是左对齐的一列文字加一个居中的小面板，右半边整片空着，
+   * 骑缝章还飘在面板外面。改成色块加压边之后画面有了前后关系，
+   * 类型码也终于有地方做大。
+   *
+   * 主视觉必须保持方形。量过 16 只动物在 400 见方里的实际占位：
+   * 横向都在 30 到 377 之间，纵向最高的到 33、最矮的只到 174，
+   * 横向满幅铺开就得纵向裁切，会把高的那几只切掉。
    */
-  const brandY = 558;
-  const creedLabelY = 598;
-  const creedY = 642;
-  const codeY = creed ? 742 : 700;
-  const nameY = codeY + 52;
-  const ruleY = nameY + 32;
-  const labelY = ruleY + 44;
-  const topBottom = labelY + (labelLines.length - 1) * 42 + labelSize * 0.6;
-
+  const blockBottom = 430;
+  const art = { x: 160, y: 380, size: 580 };
   /*
-   * 标签贴着走马带从底往上排，所以它永远不会压到带子上。
-   * 万一上下两块还是会碰（label 特别长又赶上标签特别长），
-   * 从后往前减条数直到排得下——宁可少两条标签，也不能让两块字叠在一起。
+   * 主视觉四周有一圈固定的空白。量过 16 只动物：横向都落在 30 到 377 之间，
+   * 纵向最低到 376，所以裁掉每边 22 个单位不会切到任何一只，画面还能大一成。
+   * 各自上方剩多少空当取决于那只动物画得多高，那是画本身的事，这里不逐类型调。
    */
+  const inset = 22;
+  const scale = art.size / (400 - inset * 2);
+
   const tagSize = 24;
   const tagBottom = bandTop - 20;
   let shown = tags.slice(0, 6);
   let flow = flowTags(shown, left, right, tagSize, 12);
-  while (shown.length > 2 && topBottom + 24 > tagBottom - flow.height) {
+  // 标签贴着走马带从底往上排，排不下就从后往前减，永远压不到主视觉和带子
+  while (shown.length > 2 && art.y + art.size + 24 > tagBottom - flow.height) {
     shown = shown.slice(0, shown.length - 1);
     flow = flowTags(shown, left, right, tagSize, 12);
   }
   const tagsTop = tagBottom - flow.height;
 
-  const creedBlock = creed
-    ? `<text x="${left}" y="${creedLabelY}" font-size="20" letter-spacing="4" opacity="0.6">${escapeXml(creedLabel)}</text>
-       <text x="${left}" y="${creedY}" font-size="38" font-weight="600">${escapeXml(creed)}</text>`
-    : "";
-
   const tagMarkup = flow.boxes
     .map(
       (box) =>
         `<g transform="translate(${box.x} ${(tagsTop + box.y).toFixed(1)})">
-          <rect x="0" y="0" rx="${(flow.pill / 2).toFixed(0)}" width="${box.width.toFixed(0)}" height="${flow.pill.toFixed(0)}" fill="${tone.washB}" opacity="0.75"/>
+          <rect x="0" y="0" rx="${(flow.pill / 2).toFixed(0)}" width="${box.width.toFixed(0)}" height="${flow.pill.toFixed(0)}" fill="${tone.washB}"/>
           <text x="${(box.width / 2).toFixed(0)}" y="${(flow.pill * 0.66).toFixed(0)}" text-anchor="middle" font-size="${tagSize}" fill="${tone.ink}">${escapeXml(box.text)}</text>
         </g>`,
     )
     .join("");
 
-  // 走马带。纯排版：把卡底填满，并把类型码再说一次
+  const creedBlock = creed
+    ? `<text x="${left}" y="138" font-size="20" letter-spacing="4" fill="${tone.card}">${escapeXml(creedLabel)}</text>
+       <text x="${left}" y="196" font-size="42" font-weight="600" fill="${tone.card}">${escapeXml(creed)}</text>`
+    : "";
+
   const marquee = marqueeUnits(code, 8)
     .map((unit) => `${unit}　·　`)
     .join("");
@@ -259,25 +216,29 @@ export function posterCardMarkup({
   return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200" viewBox="0 0 900 1200" font-family="${font}">
     <defs>
       <clipPath id="band"><rect x="0" y="${bandTop}" width="900" height="${1200 - bandTop}"/></clipPath>
-      <clipPath id="artframe"><rect x="206" y="34" width="488" height="488" rx="26"/></clipPath>
+      <clipPath id="artframe"><rect x="${art.x}" y="${art.y}" width="${art.size}" height="${art.size}" rx="30"/></clipPath>
     </defs>
+
     <rect width="900" height="1200" fill="${tone.card}"/>
-    <!--
-      主视觉自带一张不透明的纸色底，直接贴在卡的浅色底上会留一道没道理的接缝。
-      圆角裁切加一圈细边之后，它读起来是一块有意为之的画板。
-    -->
-    <g clip-path="url(#artframe)"><g transform="translate(206 34) scale(1.22)">${artMarkup}</g></g>
-    <rect x="206" y="34" width="488" height="488" rx="26" fill="none" stroke="${tone.washB}" stroke-width="2"/>
-    ${sealMarkup({ center: "780 120", radius: 64, ring, middle: "16" })}
-    <g fill="${tone.ink}">
-      <text x="${left}" y="${brandY}" font-size="22" letter-spacing="5" opacity="0.65">${escapeXml(brand)}</text>
+    <rect width="900" height="${blockBottom}" fill="${tone.ink}"/>
+
+    <g fill="${tone.card}">
+      <text x="${left}" y="76" font-size="22" letter-spacing="5">${escapeXml(brand)}</text>
       ${creedBlock}
-      <text x="${left - 4}" y="${codeY}" font-size="116" font-weight="700" letter-spacing="-3">${escapeXml(code)}</text>
-      <text x="${left}" y="${nameY}" font-size="38" font-weight="600">${escapeXml(name)}</text>
-      <path d="M${left} ${ruleY}h64" stroke="${tone.ink}" stroke-width="3" opacity="0.4"/>
-      ${labelLines.map((line, i) => `<text x="${left}" y="${labelY + i * 42}" font-size="${labelSize}">${escapeXml(line)}</text>`).join("")}
+      <text x="${left - 4}" y="322" font-size="124" font-weight="700" letter-spacing="-3">${escapeXml(code)}</text>
+      <text x="${left}" y="378" font-size="36" font-weight="600">${escapeXml(name)}</text>
     </g>
+
+    <!-- 主视觉压住色块下缘。它自带一张纸底，圆角裁切让它成为一块画板 -->
+    <g clip-path="url(#artframe)">
+      <g transform="translate(${(art.x - inset * scale).toFixed(1)} ${(art.y - inset * scale).toFixed(1)}) scale(${scale.toFixed(4)})">${artMarkup}</g>
+    </g>
+    <rect x="${art.x}" y="${art.y}" width="${art.size}" height="${art.size}" rx="30" fill="none" stroke="${tone.washB}" stroke-width="2"/>
+
+    ${sealMarkup({ center: `${art.x + art.size - 18} ${art.y + 14}`, radius: 62, middle: "16" })}
+
     ${tagMarkup}
+
     <g clip-path="url(#band)">
       <rect x="0" y="${bandTop}" width="900" height="${1200 - bandTop}" fill="${tone.ink}"/>
       <text x="${left}" y="${bandTop + 48}" font-size="28" font-weight="700" letter-spacing="6" fill="${tone.card}" opacity="0.92">${escapeXml(marquee)}</text>

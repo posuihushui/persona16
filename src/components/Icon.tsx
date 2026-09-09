@@ -69,6 +69,13 @@ const PATHS: Record<string, React.ReactNode> = {
       <circle cx="4.5" cy="18" r="1.2" />
     </>
   ),
+  // 类型地图：指南针
+  compass: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M15 9l-1.8 4.2L9 15l1.8-4.2z" />
+    </>
+  ),
   // 分享
   share: (
     <>

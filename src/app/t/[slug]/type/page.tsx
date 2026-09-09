@@ -88,17 +88,21 @@ export default async function TypeIndexPage({ params }: { params: Promise<{ slug
             直接开始测试
           </Link>
 
-          <TypeGrid pack={pack} />
-
           {/*
-           * 16 张卡分四组。
-           *
-           * 原来是 16 行同形的列表，找自己那一行只能从头扫。
-           * 按第一条和第四条轴分组之后，每组四张，先认组再挑；
-           * 上面的字母筛选可以再缩一半，选两个就只剩四张。
-           *
-           * 卡片全部由服务端渲染，筛选只改属性——没有 JS 时 16 张一张不少。
+           * 这一页有两块东西，它们是同一批类型的两种排法，所以必须长得不一样：
+           * 上面是地图，只有格子和图，回答「我在哪一格」；
+           * 下面是目录，有名字和那句话，回答「这一格是什么」。
+           * 两块都做成白底卡片列过一版，读起来就是把 16 个类型倒了两遍。
            */}
+          <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+            <SectionHead
+              icon="grid"
+              title={illustrations.types.mapTitle}
+              hint={illustrations.types.mapHint}
+            />
+            <TypeGrid pack={pack} />
+          </section>
+
           <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
             <SectionHead
               icon="spark"
@@ -125,6 +129,7 @@ export default async function TypeIndexPage({ params }: { params: Promise<{ slug
                         code={code}
                         name={pack.results[code].name}
                         label={pack.results[code].label}
+                        size={60}
                       />
                     ))}
                   </div>

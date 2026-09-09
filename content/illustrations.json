@@ -165,10 +165,12 @@
   "types": {
     "title": "16 种组合，16 种认识自己的入口",
     "hint": "没有更好的类型，只有不同的习惯与视角。",
+    "mapTitle": "先在这张图上找到自己",
+    "mapHint": "横竖各是两条轴，交出来就是 16 个格子。点一格看那一种。",
     "filterAll": "全部",
     "filterHint": "点字母缩小范围，同一条轴上只能选一边。",
     "listTitle": "一句话认出每一种",
-    "listHint": "按精力与节奏分成四组，先找自己那一行。"
+    "listHint": "上面那张图管位置，这里管每一种到底是什么样。"
   },
   "placements": {
     "homeHero": "discovery",
