@@ -30,12 +30,20 @@ const submitted = await call("/api/submit", body);
 assert.equal(submitted.status, 200);
 const { attemptId, code } = await submitted.json();
 const doc = JSON.parse(fs.readFileSync(`content/tests/persona16/results/${code}.json`, "utf8"));
+/*
+ * 认知正文在报告里按启动顺序拆成四层分别渲染，整串不会原样出现在 HTML 里。
+ * 所以付费边界改成逐段断言：付费页每一段都要在，公开出口每一段都不许在。
+ * 逐段比整串更严——整串只要有一段被单独漏出去就检查不到。
+ */
+const cognitionParts: string[] = doc.cognition.split(/\n{2,}/).map((p: string) => p.trim()).filter(Boolean);
+const hasAllCognition = (html: string) => cognitionParts.every((part) => html.includes(part));
+const hasAnyCognition = (html: string) => cognitionParts.some((part) => html.includes(part));
 const resultPath = `/r/${attemptId}`;
 const resultHtml = await (await call(resultPath)).text();
 assert.match(resultHtml, /name="robots" content="noindex/);
 assert.ok(resultHtml.includes(`/t/persona16/type/${code}`));
 assert.ok(!resultHtml.includes(doc.core), "免费结果不得包含完整性格描述");
-assert.ok(!resultHtml.includes(doc.cognition), "免费HTML不得包含付费认知正文");
+assert.ok(!hasAnyCognition(resultHtml), "免费HTML不得包含付费认知正文");
 const free = await (await call(`/api/result/${attemptId}`)).json();
 assert.equal(free.paid, false);
 assert.equal(free.result.cognition, undefined);
@@ -67,19 +75,19 @@ const status = await (await call(`/api/order/${created.orderId}/status`)).json()
 assert.equal(status.paid, true);
 assert.ok(status.retrieveCode);
 const paidHtml = await (await call(`${resultPath}/report`)).text();
-assert.ok(paidHtml.includes(doc.cognition));
+assert.ok(hasAllCognition(paidHtml), "付费报告必须包含完整认知正文的每一层");
 assert.match(paidHtml, /name="robots" content="noindex/);
 assert.equal((await call(`${resultPath}/report`, undefined, false)).status, 307);
 const retrieved = await (await call(`${resultPath}/report?code=${encodeURIComponent(status.retrieveCode)}`, undefined, false)).text();
-assert.ok(retrieved.includes(doc.cognition));
+assert.ok(hasAllCognition(retrieved), "凭找回码打开的报告同样要有完整认知正文");
 const alreadyPaid = await (await call("/api/order/create", { attemptId })).json();
 assert.equal(alreadyPaid.alreadyPaid, true);
 const publicType = await (await call(`/t/persona16/type/${code}`, undefined, false)).text();
 assert.ok(!publicType.includes(doc.core));
-assert.ok(!publicType.includes(doc.cognition));
+assert.ok(!hasAnyCognition(publicType), "公开类型页不得出现任何一段付费认知正文");
 const llms = await (await call("/llms-full.txt", undefined, false)).text();
 assert.ok(!llms.includes(doc.core));
-assert.ok(!llms.includes(doc.cognition));
+assert.ok(!hasAnyCognition(llms), "llms 出口不得出现任何一段付费认知正文");
 for (const filename of fs.readdirSync("content/tests/persona16/results")) {
   const type = filename.replace(".json", "");
   const res = await call(`/api/og?slug=persona16&code=${type}&version=${pack.version}`, undefined, false);

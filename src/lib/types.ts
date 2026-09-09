@@ -120,13 +120,36 @@ export type GuideChapter = {
   /** 一组并列的短句，用于「常见的去处」这类小节 */
   pointsTitle?: string;
   points?: string[];
+  /**
+   * 版式覆盖。不写时页面按这一节有什么内容自己选：
+   * 有 good/hard 走对照版式，有 points 走瓦片版式，其余按序号在横幅与图文左右之间轮换。
+   * 只有需要打断轮换（比如结尾那节不想再出现插画）时才显式声明。
+   */
+  layout?: GuideLayout;
 };
+
+/** 章节版式。banner 是头图铺满，split 是图文左右，plain 不出图。 */
+export type GuideLayout = "banner" | "split" | "split-reverse" | "plain";
 
 export type ResultDoc = {
   code: string;
   name: string;
   label: string;
   keywords: string[];
+  /**
+   * 人生信条。一句短话，写在分享卡上最显眼的位置。
+   *
+   * 它和 label 的分工：label 是别人怎么看这一类人，creed 是这一类人自己怎么说。
+   * 免费字段，会出现在公开分享卡上。
+   */
+  creed: string;
+  /**
+   * 口语标签。四到六条，每条不超过 12 字。
+   *
+   * keywords 是三个词，给检索和 meta 用；tags 是句子，给人看的，
+   * 也是分享卡底部那一格和类型页关键词瓦片的内容。免费字段。
+   */
+  tags: string[];
   /** 免费的通俗解读，类型页正文 */
   guide: GuideChapter[];
   core: string;

@@ -2,23 +2,41 @@ import { readOpenId } from "@/lib/wechat/identity";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ActionChecklist } from "@/components/ActionChecklist";
 import { SectionHead } from "@/components/Icon";
+import { PairCard } from "@/components/PairCard";
+import { RankStack } from "@/components/RankStack";
+import { ScoreSpectrum } from "@/components/Spectrum";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SceneSectionHeading } from "@/components/SceneIllustration";
 import { TrackView } from "@/components/TrackView";
+import { TypeGuideNav } from "@/components/TypeGuide";
+import { TypePoster } from "@/components/TypePoster";
 import { listResultCodes, loadPack } from "@/lib/content";
 import { prisma } from "@/lib/db";
 import { hasPaidAccess } from "@/lib/entitlement";
 import { syncOrderStatus } from "@/lib/pay/reconcile";
+import { paragraphs, splitClaim, splitLead } from "@/lib/prose";
 import { readSessionKey } from "@/lib/session";
+import type { DimensionScore } from "@/lib/types";
+import ui from "../../../../../content/ui.json";
 import illustrations from "../../../../../content/illustrations.json";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
+const copy = ui.report;
+
 /**
  * 付费深度报告。鉴权在服务端做，未付费用户的 HTML 里不会出现任何付费内容。
+ *
+ * 这是全站文字最密的一页，所以排版按内容的形状分工，不用同一种块从头铺到尾：
+ *   认知偏好本来就有次序 → 阶梯
+ *   优势是五条并列结论   → 编号卡，结论加粗，解释降一级
+ *   盲点是「看到的 + 做的」→ 双格卡，动作那格可以勾掉
+ *   相处对象有两个类型码 → 双主视觉的配对卡
+ * 顶上补一个封面和目录，八千字不再是一条没有路标的长路。
  */
 export default async function ReportPage({
   params,
@@ -32,7 +50,7 @@ export default async function ReportPage({
 
   const attempt = await prisma.attempt.findFirst({
     where: { id: resultId, deletedAt: null },
-    select: { id: true, slug: true, code: true, packVersion: true },
+    select: { id: true, slug: true, code: true, dimensions: true, packVersion: true },
   });
   if (!attempt) notFound();
 
@@ -65,57 +83,95 @@ export default async function ReportPage({
     select: { retrieveCode: true },
   });
 
+  const dimensions = attempt.dimensions as unknown as DimensionScore[];
+  // 认知那一段本来就是按启动顺序写的四段，摊开就能排成阶梯
+  const cognition = paragraphs(doc.cognition);
+
+  // 目录跟着实际渲染的小节走，顺序和下面一致
+  const sections = [
+    { id: "cognition", nav: copy.nav.cognition },
+    { id: "strengths", nav: copy.nav.strengths },
+    { id: "blind", nav: copy.nav.blind },
+    { id: "career", nav: copy.nav.career },
+    { id: "love", nav: copy.nav.love },
+    { id: "others", nav: copy.nav.others },
+    { id: "growth", nav: copy.nav.growth },
+  ];
+
   return (
     <>
       <SiteHeader title="深度报告" backHref={`/r/${attempt.id}`} />
-      <main className="page" style={{ paddingTop: "1.5rem", paddingBottom: "2rem" }}>
+      <main className="page report-page">
         <TrackView name="report_view" slug={attempt.slug} attemptId={attempt.id} />
 
-        <div className="stack" style={{ "--stack-gap": "2rem" } as React.CSSProperties}>
-          <div className="stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-            <p className="eyebrow">{doc.code} · {doc.name}</p>
-            <h1 className="h1">{pack.paywall.productName}</h1>
+        {/*
+         * 封面。报告原来的开头是一行小字加一个标题，读起来像文档而不像交付物。
+         * 把类型卡和四条轴放到最前面，用户一打开就知道这份报告是给谁的，
+         * 后面所有的「你」都挂在这张卡上。
+         */}
+        <header className="report-cover">
+          <div className="report-cover-card">
+            <TypePoster code={doc.code} doc={doc} testName={copy.coverEyebrow} compact />
           </div>
+          <div className="report-cover-body">
+            <h1 className="h1">{pack.paywall.productName}</h1>
+            <p className="report-cover-axes">{copy.coverAxes}</p>
+            <ScoreSpectrum dimensions={pack.scoring.dimensions} scores={dimensions} />
+          </div>
+        </header>
 
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+        <TypeGuideNav chapters={sections} />
+
+        <div className="stack report-body" style={{ "--stack-gap": "2.25rem" } as React.CSSProperties}>
+          <section id="cognition" className="report-section stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
             <SceneSectionHeading scene={illustrations.placements.reportCognition}>
-              <SectionHead icon="layers" title="你的认知偏好是怎么组合的" />
+              <SectionHead icon="layers" title={copy.cognitionTitle} hint={copy.cognitionHint} />
             </SceneSectionHeading>
-            <p style={{ margin: 0, whiteSpace: "pre-line" }}>{doc.cognition}</p>
+            <RankStack items={cognition} note={copy.cognitionNote} />
           </section>
 
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-            <SectionHead icon="spark" title="你的真实优势" />
-            <ul className="stack" style={{ "--stack-gap": "0.5rem", margin: 0, paddingLeft: "1.1rem" } as React.CSSProperties}>
-              {doc.strengths.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
+          <section id="strengths" className="report-section stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+            <SectionHead icon="spark" title={copy.strengthsTitle} hint={copy.strengthsHint} />
+            {/*
+             * 五条优势原来是一个项目符号列表，五行长得一样。
+             * 每条写的其实是「结论，为什么」，把前半句提出来加粗，
+             * 扫读的人只看粗体那一行也能读完这一节。拆不动的条目原样显示。
+             */}
+            <ol className="cards">
+              {doc.strengths.map((item, i) => {
+                const { lead, body } = splitLead(item);
+                return (
+                  <li className="card-item" key={item.slice(0, 16)}>
+                    <span className="card-index" aria-hidden="true">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="card-body">
+                      <b>{lead}</b>
+                      {body && <span>{body}</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
           </section>
 
-          <section className="stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>
-            <SectionHead
-              icon="eye"
-              title="你的盲点，以及可以怎么办"
-              hint="这些是倾向不是缺陷，每条都配了一个这周就能做的动作"
+          <section id="blind" className="report-section stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+            <SectionHead icon="eye" title={copy.blindTitle} hint={copy.blindHint} />
+            <ActionChecklist
+              items={doc.blindSpots}
+              storageKey={`p16:actions:${attempt.id}`}
+              actionLabel={copy.blindAction}
+              doneLabel={copy.blindDone}
             />
-            {doc.blindSpots.map((bs) => (
-              <div key={bs.point} className="card stack" style={{ "--stack-gap": "0.625rem" } as React.CSSProperties}>
-                <p style={{ margin: 0 }}>{bs.point}</p>
-                <p className="small" style={{ margin: 0, color: "var(--accent-strong)" }}>
-                  试试看：{bs.action}
-                </p>
-              </div>
-            ))}
           </section>
 
-          <section className="stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>
+          <section id="career" className="report-section stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>
             <SceneSectionHeading scene={illustrations.placements.reportCareer}>
-              <SectionHead icon="grid" title="工作环境" />
+              <SectionHead icon="grid" title={copy.careerTitle} />
             </SceneSectionHeading>
             <div className="versus">
               <div className="versus-col is-good">
-                <h3>让你回血的</h3>
+                <h3>{copy.careerFits}</h3>
                 <ul>
                   {doc.career.fits.map((x) => (
                     <li key={x}>{x}</li>
@@ -123,7 +179,7 @@ export default async function ReportPage({
                 </ul>
               </div>
               <div className="versus-col is-bad">
-                <h3>让你持续消耗的</h3>
+                <h3>{copy.careerDrains}</h3>
                 <ul>
                   {doc.career.drains.map((x) => (
                     <li key={x}>{x}</li>
@@ -132,64 +188,71 @@ export default async function ReportPage({
               </div>
             </div>
             <div className="stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-              <h3 className="h3">可以切入的方向</h3>
-              <p className="wrap" style={{ margin: 0 }}>
+              <h3 className="h3">{copy.careerRoles}</h3>
+              {/* 六个方向从一排 chip 换成瓦片，每个方向有自己的位置 */}
+              <ul className="roles">
                 {doc.career.roles.map((r) => (
-                  <span
-                    key={r}
-                    className="chip"
-                    style={{ background: "var(--accent-soft)", color: "var(--accent-strong)" }}
-                  >
+                  <li className="role" key={r}>
                     {r}
-                  </span>
+                  </li>
                 ))}
-              </p>
+              </ul>
               <p className="small muted" style={{ margin: 0 }}>
-                这是环境匹配度的参考，不是能力评价。同一个类型在任何行业都有做得很好的人。
+                {copy.careerNote}
               </p>
             </div>
           </section>
 
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+          <section id="love" className="report-section stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
             <SceneSectionHeading scene={illustrations.placements.reportRelationships}>
-              <SectionHead icon="link" title="亲密关系" />
+              <SectionHead icon="link" title={copy.loveTitle} />
             </SceneSectionHeading>
             <div className="card stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-              <h3 className="h3">你在关系里的样子</h3>
+              <h3 className="h3">{copy.loveIn}</h3>
               <p style={{ margin: 0 }}>{doc.relationship.inLove}</p>
             </div>
             <div className="card stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-              <h3 className="h3">最容易反复出现的摩擦</h3>
+              <h3 className="h3">{copy.loveFriction}</h3>
               <p style={{ margin: 0 }}>{doc.relationship.friction}</p>
             </div>
           </section>
 
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
-            <SectionHead icon="share" title="和这几类人相处" />
-            {doc.withOthers.map((item) => {
-              const other = pack.results[item.code];
-              return (
-                <div key={item.code} className="card stack" style={{ "--stack-gap": "0.375rem" } as React.CSSProperties}>
-                  <h3 className="h3">
-                    {item.code}
-                    {other ? ` ${other.name}` : ""}
-                  </h3>
-                  <p className="small" style={{ margin: 0 }}>{item.note}</p>
-                </div>
-              );
-            })}
+          <section id="others" className="report-section stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+            <SectionHead icon="share" title={copy.othersTitle} hint={copy.othersHint} />
+            {/* 四张卡的左半边都是你，右半边换人，谁和谁不用再从文字里找 */}
+            <div className="pairs">
+              {doc.withOthers.map((item) => (
+                <PairCard
+                  key={item.code}
+                  selfCode={doc.code}
+                  otherCode={item.code}
+                  otherName={pack.results[item.code]?.name}
+                  note={item.note}
+                  href={`/t/${attempt.slug}/type/${item.code}`}
+                />
+              ))}
+            </div>
           </section>
 
-          <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+          <section id="growth" className="report-section stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
             <SceneSectionHeading scene={illustrations.placements.reportGrowth}>
-              <SectionHead icon="steps" title="给你的三条成长建议" />
+              <SectionHead icon="steps" title={copy.growthTitle} />
             </SceneSectionHeading>
-            <ol className="numbered">
-              {doc.growth.map((g) => (
-                <li key={g}>
-                  <span>{g}</span>
-                </li>
-              ))}
+            <ol className="cards cards--action">
+              {doc.growth.map((item, i) => {
+                const { lead, body } = splitClaim(item);
+                return (
+                  <li className="card-item" key={item.slice(0, 16)}>
+                    <span className="card-index" aria-hidden="true">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="card-body">
+                      <b>{lead}</b>
+                      {body && <span>{body}</span>}
+                    </span>
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
@@ -197,19 +260,20 @@ export default async function ReportPage({
 
           {order?.retrieveCode && (
             <div className="card stack" style={{ "--stack-gap": "0.5rem" } as React.CSSProperties}>
-              <h3 className="h3">换设备也能找回</h3>
+              <h3 className="h3">{copy.retrieveTitle}</h3>
               <p className="small" style={{ margin: 0 }}>
-                你的找回码是 <strong style={{ letterSpacing: "0.08em" }}>{order.retrieveCode}</strong>
-                ，截图存好。换手机或清了缓存之后，在找回页输入它就能重新打开这份报告。
+                {copy.retrieveHint.split("{code}")[0]}
+                <strong style={{ letterSpacing: "0.08em" }}>{order.retrieveCode}</strong>
+                {copy.retrieveHint.split("{code}")[1]}
               </p>
               <Link className="btn btn-ghost" href="/retrieve">
-                去找回页看看
+                {copy.retrieveCta}
               </Link>
             </div>
           )}
 
           <Link className="btn btn-ghost btn-block" href={`/r/${attempt.id}`}>
-            回到结果页
+            {copy.back}
           </Link>
 
           <div className="notice">{pack.meta.disclaimer}</div>

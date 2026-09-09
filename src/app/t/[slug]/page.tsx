@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Faq } from "@/components/Faq";
-import { SectionHead } from "@/components/Icon";
+import { Icon, SectionHead } from "@/components/Icon";
+import { SampleQuestion } from "@/components/SampleQuestion";
 import { JsonLd } from "@/components/JsonLd";
 import { LetterBreakdown } from "@/components/LetterBreakdown";
 import { DimensionAxes } from "@/components/Spectrum";
@@ -65,6 +66,18 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
   }
   if (pack.meta.status !== "published") notFound();
 
+  /*
+   * 示例题取题库正中间那一道，不是第一道——第一道用户点「开始测试」马上会再见到一次。
+   * 取值方式只和题目数量有关，换内容包不用改这里。
+   */
+  const questions = pack.questions.questions;
+  const sample = questions[Math.floor(questions.length / 2)];
+  const sampleDimension =
+    pack.scoring.dimensions.find((d) => d.id === sample?.dimension)?.name ?? "";
+  const sampleAxisCount = sample
+    ? questions.filter((q) => q.dimension === sample.dimension).length
+    : 0;
+
   return (
     <>
       <SiteHeader title={pack.meta.name} backHref="/" action={{ label: "找回报告", href: "/retrieve" }} />
@@ -93,9 +106,49 @@ export default async function TestIntroPage({ params }: { params: Promise<{ slug
             </div>
           </section>
 
+          <div className="facts">
+            <span className="fact">
+              <Icon name="list" size={20} />
+              <b>{pack.meta.questionCount}</b>
+              <span>道题</span>
+            </span>
+            <span className="fact">
+              <Icon name="clock" size={20} />
+              <b>{pack.meta.estimatedMinutes}</b>
+              <span>分钟</span>
+            </span>
+            <span className="fact">
+              <Icon name="check" size={20} />
+              <b>免费</b>
+              <span>出结果</span>
+            </span>
+          </div>
+
           <Link className="btn btn-block" href={`/t/${slug}/quiz`}>
             开始测试
           </Link>
+
+          {/*
+           * 先试一题。
+           *
+           * 这一页唯一的任务是把人送进答题，而挡在前面的是「题目难不难、要想多久」。
+           * 写多少字都不如让用户点一下，所以放一道真题和真实的五档量表。
+           * 它不计分也不存进度，选完只给一句说明。
+           */}
+          {sample && (
+            <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+              <SectionHead icon="check" title={illustrations.intro.sampleTitle} hint={illustrations.intro.sampleHintTop} />
+              <SampleQuestion
+                question={sample}
+                options={pack.questions.scale.options}
+                dimensionName={sampleDimension}
+                eyebrow={illustrations.intro.sampleEyebrow}
+                hint={illustrations.intro.sampleHint}
+                feedback={illustrations.intro.sampleFeedback.replace("{count}", String(sampleAxisCount))}
+                reset={illustrations.intro.sampleReset}
+              />
+            </section>
+          )}
 
           {/* 四条轴只讲刻度：这个测试量的是位置，不是分数 */}
           <section className="card stack" style={{ "--stack-gap": "1rem" } as React.CSSProperties}>

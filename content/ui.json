@@ -8,7 +8,13 @@
     "versionNote": "这份结果使用 {version} 版内容，题库更新后仍保留当时的解读。",
     "remainingNote": "还有 {count} 字完整描述，可在深度报告中查看。",
     "axesSummary": "四条轴合起来",
-    "posterEyebrow": "我的类型"
+    "posterEyebrow": "我的类型",
+    "freeGuideTitle": "这一类人的长处与难处",
+    "freeGuideHint": "这段写的是这个类型的共性，免费。你自己偏到哪一步在上面那四条轴。",
+    "chaptersTitle": "还可以接着读",
+    "chaptersHint": "公开解读分节写了平时的样子、恋爱、友谊和工作，都不收费。",
+    "posterHint": "长按上面这张卡可以存进相册。",
+    "tagsTitle": "别人常这么形容"
   },
   "spectrum": {
     "strong": "偏好明显",
@@ -30,7 +36,8 @@
     "copied": "类型链接已复制，可以发给朋友了。",
     "nativeError": "暂时无法打开系统分享，可以复制链接或保存卡片。",
     "wechatHint": "微信里可以长按保存卡片，再从相册发到聊天或朋友圈。",
-    "douyinHint": "抖音里可以先保存卡片；如果无法保存，点右上角菜单，在浏览器打开后继续。"
+    "douyinHint": "抖音里可以先保存卡片；如果无法保存，点右上角菜单，在浏览器打开后继续。",
+    "creedLabel": "人生信条"
   },
   "checkout": {
     "subtitle": "完整描述和深度解读，一次购买后可凭订单查询码找回。",
@@ -48,7 +55,10 @@
     "paymentIncomplete": "支付未完成",
     "paymentRetry": "可以再试一次；如果已经付款，请先刷新确认或找回报告。",
     "orderError": "暂时没能创建订单，请重试。",
-    "retrieveHint": "已付款但没看到报告？可以用订单查询码找回。"
+    "retrieveHint": "已付款但没看到报告？可以用订单查询码找回。",
+    "outlineTitle": "报告里有这些内容",
+    "outlineMore": "查看其余 {count} 项内容",
+    "skeletonCaption": "报告的版式示意：封面、认知顺位、双栏对照、带动作的盲点卡。图里没有正文。"
   },
   "quiz": {
     "firstHint": "按平时的自己选，不用纠结哪一个更好。",
@@ -66,5 +76,43 @@
     "exit": "退出",
     "autoSaved": "进度已自动保存",
     "groupHint": "跟着日常的自己选，没有标准答案。"
+  },
+  "report": {
+    "coverEyebrow": "深度报告",
+    "coverAxes": "你的四个偏好位置",
+    "tocTitle": "这份报告有这几块",
+    "cognitionTitle": "你的认知偏好是怎么组合的",
+    "cognitionHint": "四层按启动顺序排，越靠前越自动。",
+    "cognitionNote": "这是启动顺序，不是强弱打分。你在四条轴上的位置见开头那一块。",
+    "strengthsTitle": "你的真实优势",
+    "strengthsHint": "五条都来自你这个类型的固定组合，不是通用夸奖。",
+    "blindTitle": "你的盲点，以及可以怎么办",
+    "blindHint": "这些是倾向不是缺陷。右边那格是这周就能做的动作，做完可以勾掉。",
+    "blindAction": "这周可以做",
+    "blindDone": "已经做了 {done} / {total} 条",
+    "careerTitle": "工作环境",
+    "careerFits": "让你回血的",
+    "careerDrains": "让你持续消耗的",
+    "careerRoles": "可以切入的方向",
+    "careerNote": "这是环境匹配度的参考，不是能力评价。同一个类型在任何行业都有做得很好的人。",
+    "loveTitle": "亲密关系",
+    "loveIn": "你在关系里的样子",
+    "loveFriction": "最容易反复出现的摩擦",
+    "othersTitle": "和这几类人相处",
+    "othersHint": "左边是你，右边是对方。点开可以看对方那一类平时是什么样。",
+    "growthTitle": "给你的三条成长建议",
+    "retrieveTitle": "换设备也能找回",
+    "retrieveHint": "你的找回码是 {code}，截图存好。换手机或清了缓存之后，在找回页输入它就能重新打开这份报告。",
+    "retrieveCta": "去找回页看看",
+    "back": "回到结果页",
+    "nav": {
+      "cognition": "认知",
+      "strengths": "优势",
+      "blind": "盲点",
+      "career": "工作",
+      "love": "关系",
+      "others": "相处",
+      "growth": "成长"
+    }
   }
 }

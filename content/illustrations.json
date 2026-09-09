@@ -116,7 +116,30 @@
         "scene": "rhythm"
       }
     ],
-    "lettersCta": "四个字母是怎么来的 →"
+    "lettersCta": "四个字母是怎么来的 →",
+    "stepsTitle": "一共三步",
+    "stepsHint": "免费到哪里、付费从哪里开始，先说清楚。",
+    "steps": [
+      {
+        "title": "答 48 道日常题",
+        "description": "都是生活里的小场景，按平时的自己选，大约 8 分钟。",
+        "icon": "list"
+      },
+      {
+        "title": "免费拿到类型与四条位置",
+        "description": "一张能存进相册的类型卡，加上你在四条轴上的真实位置。",
+        "icon": "check"
+      },
+      {
+        "title": "想看更深再看报告",
+        "description": "认知偏好、盲点与对应动作、工作与关系，按需购买。",
+        "icon": "layers"
+      }
+    ],
+    "spectrumNote": "下面是一个示意，做完题之后这四个点会落在你自己的位置上。",
+    "gallery": "16 种组合，各有一张自己的卡",
+    "galleryHint": "点开任意一个，先读读它平时是什么样。",
+    "galleryCta": "看全部 16 种类型 →"
   },
   "intro": {
     "eyebrow": "一次与自己的轻松对话",
@@ -127,14 +150,25 @@
     "lettersHint": "每条轴各取一边，四条轴拼成一个类型码。以 {code} 为例：",
     "lettersFootnote": "2 × 2 × 2 × 2 = 16 种组合。字母只说明你偏向哪边，不说明偏多少——偏多少看上面那四条轴。",
     "typesTitle": "不同组合，各有自己的样子",
-    "typesHint": "横向是「信息怎么接 × 判断靠什么」，纵向是「精力从哪来 × 节奏怎么定」。"
+    "typesHint": "横向是「信息怎么接 × 判断靠什么」，纵向是「精力从哪来 × 节奏怎么定」。",
+    "sampleTitle": "先试一题",
+    "sampleHintTop": "点一下看看题目长什么样，这一题不计入结果。",
+    "sampleEyebrow": "示例题",
+    "sampleHint": "选一个最接近平时的自己。",
+    "sampleFeedback": "这道题问的是「{dimension}」。这条轴一共 {count} 道题，看的是整体倾向，单独一题不决定什么。",
+    "sampleReset": "重新选一次",
+    "stepsTitle": "答题过程是这样的"
   },
   "quiz": {
     "hint": "跟着日常的自己选，没有标准答案。"
   },
   "types": {
     "title": "16 种组合，16 种认识自己的入口",
-    "hint": "没有更好的类型，只有不同的习惯与视角。"
+    "hint": "没有更好的类型，只有不同的习惯与视角。",
+    "filterAll": "全部",
+    "filterHint": "点字母缩小范围，同一条轴上只能选一边。",
+    "listTitle": "一句话认出每一种",
+    "listHint": "按精力与节奏分成四组，先找自己那一行。"
   },
   "placements": {
     "homeHero": "discovery",
@@ -162,6 +196,9 @@
     "relatedTitle": "{code} 和这几类人相处时",
     "relatedHint": "点进去看看他们平时是什么样，具体的相处提示在深度报告里。",
     "allTitle": "全部 16 种类型",
-    "allHint": "每一种都有自己擅长的地方，没有更好的一类。"
+    "allHint": "每一种都有自己擅长的地方，没有更好的一类。",
+    "traitsTitle": "三个关键词",
+    "spectrumTitle": "他们大致落在四条轴的哪边",
+    "spectrumHint": "这里画的是这个类型的典型位置，不是任何一次作答的结果。"
   }
 }

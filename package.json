@@ -15,7 +15,7 @@
     "check:content": "node scripts/validate-content.mjs",
     "check:compliance": "node scripts/check-compliance.mjs",
     "check:prod-env": "node scripts/check-prod-env.mjs",
-    "test": "node --experimental-strip-types --test scripts/*.test.mts",
+    "test": "node --experimental-strip-types --import ./scripts/register-ts.mjs --test scripts/*.test.mts",
     "test:smoke": "node --experimental-strip-types scripts/smoke-local.mts",
     "ship": "npm run check:content && npm run check:compliance && npm run check:china && npm run test && npm run typecheck && npm run build",
     "check:pay-rotation": "node scripts/check-pay-rotation.mjs",

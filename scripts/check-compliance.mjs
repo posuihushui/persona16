@@ -28,7 +28,34 @@ const RULES = [
       { re: /Myers[\s-]?Briggs/i, why: "不得使用 Myers-Briggs 商标" },
       { re: /迈尔斯[\s·-]?布里格斯/, why: "不得使用 Myers-Briggs 的中文译名" },
       { re: /16Personalities/i, why: "不得引用第三方产品品牌" },
-      { re: /建筑师人格|提倡者人格|辩论家人格|物流师人格/, why: "这些是第三方产品的类型命名，不得沿用" },
+      /*
+       * 第三方产品对 16 个类型的命名，中英文都不能沿用。
+       *
+       * 这些词单独出现时大多是普通词（Executive、建筑师、探险家），
+       * 直接整词阻断会在架构文档和插画描述里大面积误报。
+       * 所以只在它紧挨着类型码或「人格 / Personality」时才判定为沿用命名——
+       * 「MEDIATOR + PERSONALITY」「INFP Mediator」「调停者人格」都会被拦下。
+       */
+      {
+        re: /\b(?:Architect|Logician|Commander|Debater|Advocate|Mediator|Protagonist|Campaigner|Logistician|Defender|Executive|Consul|Virtuoso|Adventurer|Entrepreneur|Entertainer)\b[\s·:：|,，、（(-]*\(?\s*[EI][SN][TF][JP]\b/i,
+        why: "这是第三方产品的英文类型命名，不得沿用",
+      },
+      {
+        re: /\b[EI][SN][TF][JP]\b[\s·:：|,，、）)-]*\(?\s*(?:Architect|Logician|Commander|Debater|Advocate|Mediator|Protagonist|Campaigner|Logistician|Defender|Executive|Consul|Virtuoso|Adventurer|Entrepreneur|Entertainer)\b/i,
+        why: "这是第三方产品的英文类型命名，不得沿用",
+      },
+      {
+        re: /\b(?:Architect|Logician|Commander|Debater|Advocate|Mediator|Protagonist|Campaigner|Logistician|Defender|Executive|Consul|Virtuoso|Adventurer|Entrepreneur|Entertainer)\b\s*[+＋]?\s*Personality\b/i,
+        why: "这是第三方产品的英文类型命名，不得沿用",
+      },
+      {
+        re: /(?:建筑师|逻辑学家|指挥官|辩论家|提倡者|调停者|主人公|竞选者|物流师|守卫者|总经理|执政官|鉴赏家|探险家|企业家|表演者)\s*(?:人格|型人格)/,
+        why: "这是第三方产品的中文类型命名，不得沿用",
+      },
+      {
+        re: /(?:建筑师|逻辑学家|指挥官|辩论家|提倡者|调停者|主人公|竞选者|物流师|守卫者|总经理|执政官|鉴赏家|探险家|企业家|表演者)\s*[（(]?\s*[EI][SN][TF][JP]\b/,
+        why: "这是第三方产品的中文类型命名，不得沿用",
+      },
     ],
   },
   {

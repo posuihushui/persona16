@@ -5,7 +5,10 @@ import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SceneIllustration } from "@/components/SceneIllustration";
+import { StepFlow } from "@/components/StepFlow";
 import { TypeArt, toneFor } from "@/components/TypeArt";
+import { TypeSpectrum } from "@/components/Spectrum";
+import { TypeStrip } from "@/components/TypeStrip";
 import { listPublishedPacks, listResultCodes } from "@/lib/content";
 import { absolute, breadcrumbSchema } from "@/lib/seo";
 import illustrations from "../../content/illustrations.json";
@@ -67,6 +70,20 @@ export default function HomePage() {
             </div>
           )}
 
+          {/*
+           * 一共三步。
+           *
+           * 冷启动来的用户最想知道的是「要花多久、免费到哪儿、什么时候要掏钱」，
+           * 这三件事原来散在页面各处，得读完才拼得出来。排成三步之后不读也看得见。
+           */}
+          <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+            <div className="stack" style={{ "--stack-gap": "0.25rem" } as React.CSSProperties}>
+              <h2 className="h2">{home.stepsTitle}</h2>
+              <p className="small muted" style={{ margin: 0 }}>{home.stepsHint}</p>
+            </div>
+            <StepFlow steps={home.steps} />
+          </section>
+
           {/* 测完拿到什么。先让用户看见结果的样子，再决定要不要花 8 分钟 */}
           {lead && sample && (
             <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
@@ -100,6 +117,19 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
+
+              {/*
+               * 「四条维度位置」这句话本身说不清那是什么样子，所以直接画一条出来。
+               * 用的是示意位置，光谱组件自己会标明这一点，不会被当成谁的作答。
+               */}
+              <div className="card home-axes">
+                <TypeSpectrum
+                  dimensions={lead.scoring.dimensions}
+                  code={SAMPLE_CODE}
+                  codeOrder={lead.scoring.codeOrder ?? lead.scoring.dimensions.map((d) => d.id)}
+                />
+                <p className="small muted home-axes-note">{home.spectrumNote}</p>
+              </div>
             </section>
           )}
 
@@ -125,6 +155,20 @@ export default function HomePage() {
               </Link>
             )}
           </section>
+
+          {/* 16 张主视觉先摆出来。原来这里只有一句「16 种组合」，用户看不到东西 */}
+          {lead && (
+            <section className="stack" style={{ "--stack-gap": "0.875rem" } as React.CSSProperties}>
+              <div className="stack" style={{ "--stack-gap": "0.25rem" } as React.CSSProperties}>
+                <h2 className="h2">{home.gallery}</h2>
+                <p className="small muted" style={{ margin: 0 }}>{home.galleryHint}</p>
+              </div>
+              <TypeStrip slug={lead.meta.slug} codes={listResultCodes(lead)} label={home.gallery} />
+              <Link className="btn btn-ghost btn-block" href={`/t/${lead.meta.slug}/type`}>
+                {home.galleryCta}
+              </Link>
+            </section>
+          )}
 
           {packs.length === 0 && <p className="muted">还没有已发布的测试。</p>}
 

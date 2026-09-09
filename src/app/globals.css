@@ -259,7 +259,8 @@ a,
  *
  * 卡分两级，区别只在阴影，其余属性完全一致：
  *   .card / .scene-hero / .checkout / .poster  整块内容单元，带 --shadow-card
- *   .gets / .angle / .scene-card / .type-cell / .type-line / .type-link /
+ *   .gets / .angle / .scene-card / .type-cell / .type-card / .pair-card /
+ *   .chapter-card / .trait / .role / .step / .card-item / .spot / .outline-item /
  *   .dimension-scene / .share-preview          网格里的并列格，不带阴影
  *
  * 边框颜色跟随背景：中性底一律 --line，只有 --scene-tint 底才配 --scene-line。
@@ -835,68 +836,6 @@ nav a,
   line-height: 1.7;
 }
 
-/* ============ 编号列表 ============ */
-
-.numbered {
-  display: grid;
-  gap: 0.75rem;
-  counter-reset: n;
-}
-
-.numbered > li {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: 0.75rem;
-  margin: 0;
-  list-style: none;
-  counter-increment: n;
-}
-
-.numbered > li::before {
-  content: counter(n);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: var(--step--1);
-  font-weight: 700;
-}
-
-.numbered {
-  padding-left: 0;
-}
-
-/* 一行一个类型：指纹 + 类型码 + 一句话 */
-.type-line {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--surface-raised);
-  text-decoration: none;
-  color: inherit;
-}
-
-.type-line > b {
-  font-size: var(--step--1);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--accent-strong);
-}
-
-.type-line > span {
-  font-size: var(--step--1);
-  line-height: 1.5;
-  color: var(--ink-500);
-}
 
 /* ============ 答题的量表视觉 ============ */
 
@@ -1122,13 +1061,16 @@ nav a,
 }
 
 /* 顶部小字：拉开字距，做成标签感，和下面的大字形成对比 */
+/*
+ * 顶部小字不降透明度。海报色板里最差的一组小字本来就只有 4.95:1，
+ * 压到 0.6 会掉到 2.3:1。层次靠字重和 0.24em 的字距，不靠透明度。
+ */
 .poster-eyebrow {
   margin: 0 0 0.875rem;
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.24em;
   text-indent: 0.24em;
-  opacity: 0.6;
 }
 
 /* 类型码：整张卡的主角。字距收紧，行高压到接近字身 */
@@ -1286,42 +1228,6 @@ nav a,
   padding: 1.125rem 1.25rem 1.375rem;
 }
 
-/* 锁定清单：只给标题和钩子，不泄漏正文 */
-.locked-list {
-  display: grid;
-  gap: 0.625rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.locked-list > li {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: 0.625rem;
-  margin: 0;
-}
-
-.locked-list svg {
-  margin-top: 2px;
-  color: var(--accent-strong);
-  opacity: 0.75;
-}
-
-.locked-list b {
-  display: block;
-  font-size: var(--step-0);
-  font-weight: 600;
-}
-
-.locked-list span {
-  display: block;
-  margin-top: 1px;
-  font-size: var(--step--1);
-  line-height: 1.55;
-  color: var(--ink-500);
-}
 
 /* 价格区 */
 .price-row {
@@ -1481,8 +1387,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   .quiz-question { font-size: var(--step-1); min-height: 3.25rem; margin-bottom: 1rem; }
   .quiz-options { gap: 0.5rem; }
 }
-.checkout-details { margin-top: 0.75rem; }
-.checkout-details summary { min-height: 3rem; padding: 0.625rem 0; color: var(--accent-strong); font-size: var(--step--1); cursor: pointer; }
+
 
 /* ============ 自我探索情境插画 ============ */
 
@@ -2154,7 +2059,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   letter-spacing: 0.22em;
   text-indent: 0.22em;
   opacity: 1;
-  color: var(--poster-ink-strong, inherit);
+  color: var(--poster-ink, inherit);
 }
 
 .poster-summary {
@@ -2339,24 +2244,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   font-weight: 600;
 }
 
-/* 折叠里的其余条目：给标题，不泄漏正文 */
-.checkout-details ul {
-  display: grid;
-  gap: 0.4375rem;
-  margin: 0.125rem 0 0.25rem;
-  padding: 0;
-  list-style: none;
-}
-
-.checkout-details li {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.5rem;
-  margin: 0;
-  font-size: var(--step--1);
-  line-height: 1.6;
-  color: var(--ink-700);
-}
 
 /* ============ 8. 大屏（≥640）补齐头尾 ============ */
 
@@ -2703,7 +2590,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.24em;
-  color: var(--poster-ink-strong, inherit);
+  color: var(--poster-ink, inherit);
 }
 
 .poster-headline {
@@ -2783,28 +2670,6 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   gap: 0.5rem;
 }
 
-.type-link {
-  padding: 0.625rem 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-raised);
-  text-decoration: none;
-}
-
-.type-link > b {
-  display: block;
-  font-size: var(--step--1);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--accent-strong);
-}
-
-.type-link > span {
-  display: block;
-  margin-top: 2px;
-  font-size: 0.75rem;
-  color: var(--ink-500);
-}
 
 /* ============ 14. 情境插画（矢量）与画面里的动画 ============ */
 /*
@@ -3474,12 +3339,16 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   }
 
   /* 桌面上鼠标可以悬停：卡片轻轻抬一下，说明它可点 */
-  .type-link,
+  .type-card,
+  .pair-card,
+  .chapter-card,
   .guide-next {
     transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
   }
 
-  .type-link:hover,
+  .type-card:hover,
+  .pair-card:hover,
+  .chapter-card:hover,
   .guide-next:hover {
     transform: translateY(-2px);
     border-color: var(--accent);
@@ -3545,7 +3414,9 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   .reveal,
   .guide-tab,
   .guide-next,
-  .type-link,
+  .type-card,
+  .pair-card,
+  .chapter-card,
   .guide-chip,
   .guide-progress > span {
     transition: none;
@@ -3575,4 +3446,1132 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
     max-width: 21rem;
     margin: 0 auto;
   }
+}
+
+/* ============ 16. 结论引用卡与章节版式轮换 ============ */
+/*
+ * 类型页六节原来是同一个模子：头图、标题、两段话。滑到第三节的时候，
+ * 版面已经不提供任何「我读到哪儿了」的信息，长页面因此显得比实际更长。
+ *
+ * 现在版式按这一节自己有什么来选（见 src/lib/prose.ts 的 chapterLayout）：
+ * 有对照栏的不出图，出图的几节左右交替。轮换是版面上的路标，不改变阅读顺序。
+ */
+
+/* 结论从一行粗字改成引用卡。不读正文的用户至少把这一句带走 */
+.guide-lead {
+  position: relative;
+  margin: 0.625rem 0 0;
+  padding: 0.625rem 0.875rem 0.625rem 1rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--accent-soft);
+  font-size: var(--step-1);
+  line-height: 1.6;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+/* 图文左右。窄屏仍是上下，只有 ≥560px 才真的分成两列 */
+.guide-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.875rem;
+  margin-bottom: 0.875rem;
+}
+
+.guide-split-art {
+  max-width: 13rem;
+}
+
+.guide-split .guide-chapter-title {
+  margin-bottom: 0;
+}
+
+@media (min-width: 560px) {
+  .guide-split {
+    grid-template-columns: 11rem minmax(0, 1fr);
+    -webkit-box-align: center;
+    align-items: center;
+  }
+
+  .guide-split-art {
+    max-width: none;
+  }
+
+  /* 交替：偶数节的图挪到右边，六节读下来左右各三次 */
+  .guide-split[data-flip="true"] {
+    grid-template-columns: minmax(0, 1fr) 11rem;
+  }
+
+  .guide-split[data-flip="true"] .guide-split-art {
+    -webkit-box-ordinal-group: 3;
+    order: 2;
+  }
+}
+
+/* 不出图的那节把标题往上收一点，避免和上一节的间距叠成一大片空白 */
+.guide-chapter[data-layout="plain"] .guide-chapter-title {
+  margin-bottom: 0.75rem;
+}
+
+/* 四条轴示意，和字母拆解同属「这个类型长什么样」，共用卡片外观 */
+.guide-axes .spectrum {
+  margin-top: 0.875rem;
+}
+
+/* ============ 17. 关键词瓦片 ============ */
+/*
+ * 三个关键词原来是一排 chip，挤在一行读起来和标签没区别。
+ * 瓦片让每个词有自己的位置；底色来自类型自己的色板，标记沿用主视觉的形语言
+ * （S 是方、N 是圆），所以瓦片一眼就属于这个类型，不是随便挑的装饰。
+ */
+.guide-traits-title {
+  margin: 0.875rem 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-500);
+}
+
+.traits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trait {
+  padding: 0.625rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--ink-900);
+  text-align: center;
+}
+
+.trait-mark {
+  display: block;
+  width: 12px;
+  height: 12px;
+  margin: 0 auto 0.375rem;
+}
+
+.trait > b {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* ============ 18. 顺位阶梯 ============ */
+/*
+ * 认知那一段本来就是有次序的四段，但摊成四个自然段之后，
+ * 次序只存在于文字里，扫读的人看不见。
+ *
+ * 带子越往下越短，画的是排在第几位，不是分数——四条轴的位置由光谱负责，
+ * 这里不重复表达。说明这件事的那句话由 ui.json 提供。
+ */
+.ranks {
+  display: grid;
+  gap: 1rem;
+}
+
+.rank {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: 0.875rem;
+}
+
+.rank-mark {
+  padding-top: 0.125rem;
+}
+
+.rank-index {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent-strong);
+}
+
+.rank-bar {
+  display: block;
+  height: 4px;
+  margin-top: 0.375rem;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+}
+
+.rank-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-band);
+}
+
+.rank-text {
+  margin: 0;
+  font-size: var(--step-0);
+  line-height: 1.8;
+  color: var(--ink-700);
+}
+
+.rank-note {
+  margin: 0;
+  padding-top: 0.25rem;
+  font-size: var(--step--1);
+  line-height: 1.7;
+  color: var(--ink-500);
+}
+
+/* ============ 19. 编号卡与瓦片 ============ */
+/*
+ * 优势和成长建议原来都是项目符号列表，五行、三行长得一模一样。
+ * 拆成「结论 + 解释」两级之后，只看粗体那一行也能读完一节。
+ * 拆不动的条目原样显示，不会因为版式丢字（见 src/lib/prose.ts）。
+ */
+.cards {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-item {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.card-index {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-300);
+}
+
+.card-body > b {
+  display: block;
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.65;
+  color: var(--ink-900);
+}
+
+.card-body > span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  line-height: 1.75;
+  color: var(--ink-500);
+}
+
+/* 成长建议是要去做的事，用主色的序号和左边一条实线跟优势区分开 */
+.cards--action .card-item {
+  border-left: 3px solid var(--accent);
+}
+
+.cards--action .card-index {
+  color: var(--accent);
+}
+
+/* 岗位方向从一排 chip 换成瓦片，六个方向各占一格 */
+.roles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.role {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: var(--step--1);
+  line-height: 1.5;
+}
+
+/* ============ 20. 盲点双格卡与动作清单 ============ */
+/*
+ * 每条盲点原来是一张卡里的两段话，读完点头，然后什么也不会发生。
+ * 拆成两格之后左边是「看到的」、右边是「这周做的」，判断和动作不再混成一段。
+ *
+ * 勾选只存在这台设备的 localStorage 里，不上报服务端，也不影响任何权益。
+ */
+.checklist {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.spot {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.spot-see {
+  padding: 0.875rem 1rem;
+}
+
+.spot-see > b {
+  display: block;
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.spot-see > span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  line-height: 1.75;
+  color: var(--ink-500);
+}
+
+/* 动作那一格是可点的整块，触达面积远大于 48px */
+.spot-do {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: start;
+  align-items: flex-start;
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--scene-tint);
+  cursor: pointer;
+}
+
+.spot-do > input {
+  -webkit-box-flex: 0;
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0.125rem 0.75rem 0 0;
+}
+
+.spot-do-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--scene-ink);
+}
+
+.spot-do-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  line-height: 1.75;
+  color: var(--ink-700);
+}
+
+/* 勾掉之后整格降一档，但文字不划掉——用户还要能回来读 */
+.spot[data-done="true"] .spot-do {
+  background: var(--surface-sunken);
+}
+
+.spot[data-done="true"] .spot-do-text {
+  color: var(--ink-500);
+}
+
+.checklist-count {
+  margin: 0;
+  font-size: var(--step--1);
+  color: var(--scene-ink);
+}
+
+/* ============ 21. 配对卡、类型卡与主视觉横条 ============ */
+/*
+ * 「和这几类人相处」原来是四张纯文字卡，四条建议长得一样，
+ * 读到第三条已经不知道在说谁。把双方的主视觉并排放在卡头，
+ * 四张卡的左半边因此是同一张图，变化的只有右半边——这正是这一节要表达的关系。
+ */
+.pairs {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.pair-card {
+  display: block;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  text-decoration: none;
+  color: inherit;
+}
+
+.pair-heads {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  margin-bottom: 0.625rem;
+}
+
+.pair-head {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+}
+
+.pair-head > b {
+  margin-left: 0.375rem;
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+}
+
+/* 两个头像之间的连线。它表示「和」，不表示方向，所以两端一样 */
+.pair-link {
+  width: 1.25rem;
+  height: 1px;
+  margin: 0 0.625rem;
+  background: var(--rule);
+}
+
+.pair-name {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--ink-500);
+}
+
+.pair-note {
+  display: block;
+  font-size: var(--step--1);
+  line-height: 1.8;
+  color: var(--ink-700);
+}
+
+/* 统一的类型入口卡。目录页、相关类型共用一种外观 */
+.type-card {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--line);
+  /* 类型色只在这条边上。它是填充，没有文字压在上面，深浅色都成立 */
+  border-left: 3px solid var(--card-accent, var(--line));
+  border-radius: 12px;
+  background: var(--surface-raised);
+  text-decoration: none;
+  color: inherit;
+}
+
+.type-card-art {
+  -webkit-box-flex: 0;
+  flex: none;
+  margin-right: 0.625rem;
+  line-height: 0;
+}
+
+.type-card-body {
+  min-width: 0;
+}
+
+.type-card-code {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-900);
+}
+
+.type-card-name {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.75rem;
+  color: var(--ink-700);
+}
+
+.type-card-label {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-500);
+}
+
+/* 16 张主视觉横条。页面不横滚，只有这一条自己滚 */
+.type-strip {
+  display: -webkit-box;
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.type-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.type-strip-item {
+  -webkit-box-flex: 0;
+  flex: none;
+  margin-right: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  text-align: center;
+  text-decoration: none;
+}
+
+.type-strip-item > b {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-500);
+}
+
+/* ============ 22. 目录页：分组与字母筛选 ============ */
+/*
+ * 16 张卡分四组，先认组再挑。筛选只改已渲染节点的属性，
+ * 没有 JS 时 16 张一张不少（组件里写了为什么这么做）。
+ */
+.type-filter {
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.type-filter-chip {
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  color: var(--ink-700);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.type-filter-chip[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.type-filter-hint {
+  margin: 0.5rem 0 0;
+}
+
+.code-group-head {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: baseline;
+  align-items: baseline;
+  margin: 0 0 0.5rem;
+}
+
+.code-group-head > b {
+  font-size: var(--step-1);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent-strong);
+}
+
+.code-group-head > span {
+  margin-left: 0.5rem;
+  font-size: var(--step--1);
+  color: var(--ink-500);
+}
+
+.code-group-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+/* 被筛掉的卡不占位。整组空了就连组标题一起收起来 */
+.type-card[data-filtered="true"] {
+  display: none;
+}
+
+/* ============ 23. 报告：封面、目录与小节 ============ */
+/*
+ * 报告原来的开头是一行小字加一个标题，读起来像文档而不像交付物。
+ * 封面把类型卡和四条轴放到最前面，用户一打开就知道这份报告是给谁的，
+ * 后面所有的「你」都挂在这张卡上。
+ */
+.report-page {
+  padding-top: 1rem;
+  padding-bottom: calc(2rem + var(--safe-bottom));
+}
+
+.report-cover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.report-cover-body > .h1 {
+  margin: 0;
+}
+
+.report-cover-axes {
+  margin: 1rem 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-500);
+}
+
+.report-body > * + * {
+  margin-top: 2.25rem;
+}
+
+.report-section {
+  scroll-margin-top: 7rem;
+}
+
+@media (min-width: 640px) {
+  .report-cover {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    -webkit-box-align: start;
+    align-items: start;
+  }
+}
+
+/* ============ 24. 付费墙：报告目录与版式骨架 ============ */
+/*
+ * 十行带锁文字改成目录网格，再补一张版式骨架。
+ *
+ * 骨架里没有一个字是报告正文——全是灰条。这不是打码，是真的没有内容：
+ * 付费正文根本不进这个页面的 HTML（截断在服务端的 freeView 里已经做完）。
+ * 骨架只说明「排版有几种块」，不透露任何一句写给用户的话。
+ */
+.checkout-outline-title {
+  margin: 0 0 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-500);
+}
+
+.outline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outline-item {
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+}
+
+.outline-lock {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: var(--ink-300);
+  line-height: 0;
+}
+
+.outline-item > b {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.outline-item > span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--ink-500);
+}
+
+.outline-more {
+  margin-top: 0.5rem;
+}
+
+.outline-more > summary {
+  padding: 0.5rem 0;
+  font-size: var(--step--1);
+  color: var(--accent-strong);
+  cursor: pointer;
+}
+
+.outline-more .outline-grid {
+  margin-top: 0.25rem;
+}
+
+.skeleton {
+  margin: 0 0 1rem;
+}
+
+.skeleton-paper {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.skeleton-paper > * + * {
+  margin-top: 0.75rem;
+}
+
+.skeleton-cover {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  -webkit-box-align: center;
+  align-items: center;
+}
+
+.skeleton-square {
+  display: block;
+  height: 3.5rem;
+  border-radius: 8px;
+  background: var(--ink-300);
+  opacity: 0.5;
+}
+
+.skeleton-lines > i,
+.skeleton-cards i {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink-300);
+  opacity: 0.5;
+}
+
+.skeleton-lines > i + i,
+.skeleton-cards i + i {
+  margin-top: 6px;
+}
+
+.skeleton-ranks > span {
+  display: block;
+}
+
+.skeleton-ranks > span + span {
+  margin-top: 6px;
+}
+
+.skeleton-ranks i {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent-band);
+}
+
+.skeleton-versus {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.skeleton-versus > span {
+  display: block;
+  height: 2.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+}
+
+.skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.skeleton-cards > span {
+  display: block;
+  padding: 0.625rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+}
+
+.skeleton > figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--ink-500);
+}
+
+/* ============ 25. 首页三步、章节卡与试答一题 ============ */
+/*
+ * 冷启动来的用户最想知道三件事：要花多久、免费到哪儿、什么时候要掏钱。
+ * 这三件事原来散在页面各处，得读完才拼得出来。排成三步之后不读也看得见。
+ */
+.steps {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.step-index {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.step-title {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  color: var(--ink-900);
+}
+
+.step-title > svg {
+  -webkit-box-flex: 0;
+  flex: none;
+  margin-right: 0.375rem;
+  color: var(--accent);
+}
+
+.step-title > b {
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.step-desc {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  line-height: 1.75;
+  color: var(--ink-500);
+}
+
+/*
+ * 结果页的公开解读入口。
+ *
+ * 未付费时结果页原来只剩一张卡、四条轴和一段 62 字预览。
+ * 这个类型的公开解读本来就免费，只是全躺在类型页上——这排卡把它接回来，
+ * 链接到那一页的对应锚点，不复制正文，正文只有一份。
+ */
+.chapter-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.chapter-card {
+  padding: 0.75rem;
+  border: 1px solid var(--scene-line);
+  border-radius: 12px;
+  background: var(--scene-tint);
+  text-decoration: none;
+  color: inherit;
+}
+
+.chapter-card-art {
+  max-width: 4.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.chapter-card-body > b {
+  display: block;
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--scene-ink);
+}
+
+.chapter-card-body > span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--ink-700);
+}
+
+/*
+ * 试答一题。
+ *
+ * 介绍页唯一的任务是把人送进答题，挡在前面的是「题目难不难、要想多久」。
+ * 写多少字都不如让用户点一下。它不计分、不存进度，选完只给一句说明——
+ * 说明里写清了这一点，避免用户以为自己已经开始答题了。
+ */
+.sample {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-card);
+}
+
+.sample-eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink-500);
+}
+
+.sample-question {
+  margin: 0.5rem 0 0.875rem;
+  font-size: var(--step-1);
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.sample-options {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* 示例题的选项比答题页矮一档：这里是看一眼，不是连答 48 次 */
+.sample-options .option {
+  min-height: 2.75rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.sample-hint {
+  margin: 0.75rem 0 0;
+  font-size: var(--step--1);
+  color: var(--ink-500);
+}
+
+.sample-answer {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius-sm);
+  background: var(--scene-tint);
+}
+
+.sample-answer > p {
+  margin: 0;
+  font-size: var(--step--1);
+  line-height: 1.75;
+  color: var(--ink-700);
+}
+
+.sample-reset {
+  margin-top: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-strong);
+  font-size: var(--step--1);
+  cursor: pointer;
+}
+
+/* 首页那条示意光谱：说明「四条维度位置」到底长什么样 */
+.home-axes {
+  padding: 1rem;
+}
+
+.home-axes-note {
+  margin: 0.75rem 0 0;
+}
+
+.poster-hint {
+  margin: -0.75rem 0 0;
+  text-align: center;
+}
+
+/* ============ 26. 海报的密度：信条、四条轴、标签、印章、走马带 ============ */
+/*
+ * 海报是全站唯一以被截图外发为目标的区域，所以这里「值得被看见」压过「克制」。
+ * 一张卡上同时给出信条、类型码、一句标签、四条轴的位置和几条口语标签，
+ * 用户截这一张就够了，不用再截光谱那一块。
+ *
+ * 这一整块的颜色全部走 --poster-* 变量，不跟随主题令牌：
+ * 卡片会被截图外发，深浅色模式下必须长得一样。
+ *
+ * 小字一律用 --poster-ink（tone.ink，明度固定 34%），不用套印色。
+ * 套印色的明度随色系在 38% 到 70% 之间浮动，16 个类型里有 10 个
+ * 拿它当 11px 小字的颜色达不到 4.5:1——最差的两个只有 2.2:1。
+ * scripts/poster.test.mts 里锁了这条。
+ */
+
+.poster-creed {
+  margin: 0.625rem 0 0.875rem;
+}
+
+.poster-creed > span {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--poster-ink);
+}
+
+.poster-creed > b {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: var(--step-2);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--poster-ink);
+}
+
+/*
+ * 四条轴。从中线往命中那一端填，填多少就是偏多少。
+ * 两端同色：站内橙色代表消耗、蓝色代表舒服，而这四条轴的两极没有好坏之分。
+ */
+.poster-axes {
+  display: grid;
+  gap: 0.4375rem;
+  margin: 0.875rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.poster-axis {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr) 1.1rem 2.4rem;
+  align-items: center;
+  gap: 0.4375rem;
+}
+
+/*
+ * 两端的字母不降透明度。
+ *
+ * 它们说明这条轴的两极是哪两个字母，是信息不是装饰，压到 0.65 会把
+ * 上面刚校准过的 4.9:1 拉回 2.5:1 上下。层次交给字号和字重。
+ */
+.poster-axis > b {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--poster-ink);
+  text-align: center;
+}
+
+.poster-axis-track {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--poster-chip);
+}
+
+.poster-axis-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--poster-ink);
+}
+
+.poster-axis > i {
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--poster-ink);
+  text-align: right;
+}
+
+.poster-tags {
+  display: -webkit-box;
+  display: flex;
+  -webkit-box-lines: multiple;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin: 0.875rem -0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* flex 的 gap 要 Chrome 84，这里用 margin 留间距 */
+.poster-tags > li {
+  margin: 0 0.25rem 0.25rem 0;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  background: var(--poster-chip);
+  color: var(--poster-ink);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+
+/* 骑缝章压在几何右上角，和分享卡上那个是同一段标记 */
+.poster-seal {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+/* 走马带。纯排版，把卡底填满并把类型码再说一次 */
+/*
+ * 走马带用 ink 而不是套印色。
+ *
+ * 套印色（--poster-ink-strong）明度在 49% 上下，12px 的浅色小字压上去只有 2.6:1，
+ * 达不到 AA。ink 明度固定 34%，同一个色系但压得住浅色字。
+ */
+.poster-band {
+  overflow: hidden;
+  padding: 0.5rem 0;
+  background: var(--poster-ink);
+}
+
+.poster-band > span {
+  display: block;
+  white-space: nowrap;
+  padding-left: 1.125rem;
+  color: var(--poster-bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  opacity: 0.92;
+}
+
+/* 卡底只剩来源域名，摘要那一行已经变成上面的四条轴 */
+.poster-summary > span {
+  display: block;
+}
+
+/*
+ * 主视觉自带一张不透明的纸色底（见 type-art.ts）。它和海报的类型色底是两种浅色，
+ * 直接铺满贴上去会在交界处留一道没道理的横线。收进来一点、加圆角和一圈细边之后，
+ * 它读起来是一块有意为之的画板。紧凑形态本来就已经是圆角，不用再处理。
+ */
+.poster:not(.poster--compact) .poster-art {
+  margin: 0.75rem 0.75rem 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--poster-chip);
 }

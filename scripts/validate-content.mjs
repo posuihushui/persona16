@@ -304,6 +304,25 @@ function validatePack(slug, dir = path.join(ROOT, slug), expectedSlug = slug, ex
       }
     }
 
+    // 信条与标签：写在公开分享卡上，长度超了会在 900×1200 的卡上排不下
+    if (typeof doc.creed !== "string" || doc.creed.trim() === "") {
+      fail(slug, `results/${code}.json 缺少 creed`);
+    } else if ([...doc.creed].length > 12) {
+      fail(slug, `results/${code}.json 的 creed 超过 12 字，分享卡上会被挤断`);
+    }
+    if (!Array.isArray(doc.tags) || doc.tags.length < 4 || doc.tags.length > 6) {
+      fail(slug, `results/${code}.json 的 tags 要 4 到 6 条，当前 ${Array.isArray(doc.tags) ? doc.tags.length : "缺失"}`);
+    } else {
+      for (const tag of doc.tags) {
+        if (typeof tag !== "string" || tag.trim() === "" || [...tag].length > 12) {
+          fail(slug, `results/${code}.json 的 tags 每条不超过 12 字: ${tag}`);
+        }
+      }
+      if (new Set(doc.tags).size !== doc.tags.length) {
+        fail(slug, `results/${code}.json 的 tags 有重复`);
+      }
+    }
+
     // 公开解读：类型页的免费正文，章节结构由内容包声明，页面按顺序渲染
     if (Array.isArray(doc.guide)) {
       if (doc.guide.length < 3) {
@@ -328,6 +347,10 @@ function validatePack(slug, dir = path.join(ROOT, slug), expectedSlug = slug, ex
         }
         if (!Array.isArray(ch?.paragraphs) || ch.paragraphs.length === 0) {
           fail(slug, `results/${code}.json 的 guide[${i}] 至少要有一段正文`);
+        }
+        // 版式可以不写（页面会按这一节有什么自己选），写了就必须是四种之一
+        if (ch?.layout !== undefined && !["banner", "split", "split-reverse", "plain"].includes(ch.layout)) {
+          fail(slug, `results/${code}.json 的 guide[${i}].layout 不是合法版式: ${ch.layout}`);
         }
         if (ch?.nav && ch.nav.length > 6) {
           warn(slug, `results/${code}.json 的 guide[${i}].nav「${ch.nav}」超过 6 字，窄屏目录会挤`);

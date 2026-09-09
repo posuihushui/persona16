@@ -6,6 +6,7 @@ import { copyText, publicTypePath } from "@/components/ShareActions";
 import ui from "../../content/ui.json";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icon";
+import { ReportOutline } from "@/components/ReportOutline";
 import type { PrepayResult } from "@/lib/pay/provider";
 import type { Paywall as PaywallConfig } from "@/lib/types";
 
@@ -290,26 +291,13 @@ export function Checkout({
       </div>
 
       <div className="checkout-body">
-        <ul className="locked-list">
-          {paywall.locked.slice(0, 3).map((item) => (
-            <li key={item.key}>
-              <Icon name="lock" size={17} />
-              <span>
-                <b>{item.title}</b>
-                <span>{item.hint}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-        {paywall.locked.length > 3 && <details className="checkout-details">
-          <summary>查看其余 {paywall.locked.length - 3} 项内容</summary>
-          <ul className="locked-list">
-            {paywall.locked.slice(3).map((item) => <li key={item.key}>
-              <Icon name="lock" size={17} />
-              <span><b>{item.title}</b><span>{item.hint}</span></span>
-            </li>)}
-          </ul>
-        </details>}
+        {/*
+         * 十行带锁文字改成目录网格。行数没变，但每一项成了一张卡，
+         * 用户扫一遍就知道报告里有几块内容，不用逐行读。
+         * 卡上只有 paywall.json 的 locked 标题和钩子，正文一个字都不进这里。
+         */}
+        <p className="checkout-outline-title">{ui.checkout.outlineTitle}</p>
+        <ReportOutline items={paywall.locked} moreLabel={ui.checkout.outlineMore} />
 
         <div className="price-row">
           <span className="price-now">

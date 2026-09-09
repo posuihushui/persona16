@@ -2,9 +2,19 @@ import { toneFor, typeArtMarkup } from "@/lib/type-art";
 
 /**
  * 类型主视觉的 React 外壳。
- * 几何与色板在 src/lib/type-art.ts，那里没有 JSX，
+ * 画面与色板在 src/lib/type-art.ts，那里没有 JSX，
  * 所以分享卡接口和运维脚本都能直接引用，不会出现两套画法。
  */
+
+/**
+ * 小尺寸用的视框。
+ *
+ * 画布是 400×400，角色四周留了一圈纸。这圈留白在海报上是对的，
+ * 但矩阵页 44px、配对卡 40px 的时候，它会把本来就小的角色再缩掉四分之一。
+ * 小于这个尺寸就裁掉外圈，只保留角色和地面线那一段。
+ */
+const TIGHT_AT = 80;
+const TIGHT_BOX = "32 44 340 340";
 
 export { toneFor, typeArtMarkup };
 export type { Tone } from "@/lib/type-art";
@@ -26,7 +36,7 @@ export function TypeArt({
       className={className}
       width={fluid ? "100%" : size}
       height={fluid ? undefined : size}
-      viewBox="0 0 400 400"
+      viewBox={!fluid && size < TIGHT_AT ? TIGHT_BOX : "0 0 400 400"}
       role="img"
       aria-label={`${code} 的主视觉`}
       style={{ display: "block", width: fluid ? "100%" : undefined, height: "auto" }}

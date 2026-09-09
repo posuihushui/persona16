@@ -1,17 +1,14 @@
+import { creatureMarkup, type CreatureInk } from "./type-creatures";
+
 /**
  * 类型主视觉。
  *
- * 16 张大幅几何构成，同一套设计语言，每张由类型码生成，互不相同。
- * 走包豪斯套印的路子：一个主形、一条切过它的带、两者交叠处压出第三个颜色。
- * 形少、色少，靠构成本身和交叠关系说话，不靠堆元素。
+ * 米色纸底 + 一条地面线 + 一只类型动物。三样东西每张都一样，
+ * 所以 16 张摆在一起是一套，而不是 16 张各画各的。动物本身在 type-creatures.ts。
  *
- * 四个字母各控制一件事，而且必须一眼看得出差别：
- *   E / I  主形巨大并冲出画面  ←→  主形收小，四周大量留白
- *   S / N  主形是方           ←→  是圆
- *   T / F  切带硬边、左上角有直角缺口  ←→  切带是圆头弧、主形外有光晕
- *   J / P  地面水平分割、正交  ←→  地面斜切、切带偏转
+ * 这个文件只管两件事：颜色怎么来，画面怎么拼。
  *
- * 几何以字符串形式产出，React 组件和分享卡接口共用同一份。
+ * 画面以字符串形式产出，React 组件和分享卡接口共用同一份。
  * 两边各画一套迟早会对不上，而分享卡和结果页长得不一样是很难被发现的问题。
  *
  * 全部是内联 SVG 基础图形，不用 mix-blend-mode 这类新特性，老内核也能画对。
@@ -23,6 +20,19 @@
  * 按 SN × TF 分四个色系，同组共享色相，这样 16 张摆在一起是一个系列。
  * 色相选的是四个偏灰的中性色：雾蓝、藕粉、鼠尾草、陶土。
  */
+/** 纸色。和情境插画同一张纸，两套图放在一页上才是同一个世界。 */
+const PAPER = "#f3f0e9";
+
+/** 描边与眼睛。近黑但不是纯黑，纯黑在米色纸上会跳出来。 */
+const INK = "#2f2b28";
+
+/** 道具的暖金色与它的压边色。16 只共用，是每张图里唯一的暖色。 */
+const ACCENT = "#dda03e";
+const ACCENT_DEEP = "#b0762a";
+
+/** 地面线的高度。16 只动物都站在这条线上。 */
+const GROUND = 346;
+
 const FAMILY_HUE: Record<string, number> = {
   NT: 226, // 雾蓝
   NF: 342, // 藕粉
@@ -69,82 +79,50 @@ export function toneFor(code: string): Tone {
 }
 
 /**
- * 画面几何。返回 svg 标签里的内容，不含标签本身。
+ * 角色用的颜色。
+ *
+ * 和 toneFor 同一张色相表，所以类型卡左边的色条、关键词瓦片和这只动物是一家的。
+ * 但饱和度比 toneFor 高一档：toneFor 那套是给大面积铺色用的，压到 36% 以下
+ * 才不会显得廉价；角色是小面积填充加深色描边，用同样的饱和度会灰掉，
+ * 深色描边本身已经把画面压住了。
+ */
+export function creatureInkFor(code: string): CreatureInk {
+  const hue = FAMILY_HUE[`${code[1]}${code[2]}`] ?? FAMILY_HUE.NT;
+  const variant = (code[0] === "E" ? 0 : 2) + (code[3] === "J" ? 0 : 1);
+  const h = (hue + [-5, 5, -2, 8][variant] + 360) % 360;
+  const s = [34, 29, 26, 38][variant];
+  const l = [62, 58, 66, 56][variant];
+
+  return {
+    body: `hsl(${h}, ${s}%, ${l}%)`,
+    light: `hsl(${h}, ${s - 6}%, ${Math.min(92, l + 22)}%)`,
+    deep: `hsl(${h}, ${s + 12}%, ${Math.max(30, l - 16)}%)`,
+    // 道具色对 16 只是固定的，不跟随色系。
+    // 试过按色相取补色，藕粉那组补出来是草绿，灯和橡果都变成了绿的，
+    // 和身体颜色直接打架。固定成暖金之后，每张图的视线落点一致，整套也更像一套。
+    accent: ACCENT,
+    accentDeep: ACCENT_DEEP,
+    ink: INK,
+    paper: PAPER,
+  };
+}
+
+/**
+ * 画面。返回 svg 标签里的内容，不含标签本身。
+ *
+ * 米色纸底 + 一条地面线 + 一只动物。三样东西每张都一样，
+ * 所以 16 张摆在一起是一套，而不是 16 张各画各的。
  * 全部由类型码推导，不含任何外部输入。
  */
 export function typeArtMarkup(code: string): string {
-  const outward = code[0] === "E";
-  const angular = code[1] === "S";
-  const sharp = code[2] === "T";
-  const aligned = code[3] === "J";
-
-  const t = toneFor(code);
+  const k = creatureInkFor(code);
   const id = `art-${code}`;
 
-  // 主形。向外的做大到冲出右上两边，向内的收小并让出四周
-  const r = outward ? 178 : 100;
-  const cx = outward ? 268 : 192;
-  const cy = outward ? 150 : 196;
-  const rx = outward ? 18 : 12;
-
-  // 带子横穿主形，交叠处套印
-  const bandY = outward ? 208 : 236;
-  const bandH = outward ? 86 : 64;
-  const bandTilt = aligned ? 0 : -12;
-  const bandMid = bandY + bandH / 2;
-
-  const mainShape = (fill: string) =>
-    angular
-      ? `<rect x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}" rx="${rx}" fill="${fill}"/>`
-      : `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`;
-
-  // 切带：锐利的是硬边直条，柔和的是圆头弧
-  const band = (color: string) =>
-    sharp
-      ? `<rect x="-60" y="${bandY}" width="520" height="${bandH}" fill="${color}"/>`
-      : `<path d="M -60 ${bandMid + 58} Q 200 ${bandMid - 112} 460 ${bandMid + 58}" fill="none" stroke="${color}" stroke-width="${bandH}" stroke-linecap="round"/>`;
-
-  const halo = angular
-    ? `<rect x="${cx - r - 26}" y="${cy - r - 26}" width="${(r + 26) * 2}" height="${(r + 26) * 2}" rx="${rx + 12}" fill="none" stroke="${t.alt}" stroke-width="9" opacity="0.55"/>`
-    : `<circle cx="${cx}" cy="${cy}" r="${r + 26}" fill="none" stroke="${t.alt}" stroke-width="9" opacity="0.55"/>`;
-
-  const clipShape = angular
-    ? `<rect x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}" rx="${rx}"/>`
-    : `<circle cx="${cx}" cy="${cy}" r="${r}"/>`;
-
   return `
-  <defs>
-    <clipPath id="${id}-frame"><rect x="0" y="0" width="400" height="400"/></clipPath>
-    <clipPath id="${id}-main">${clipShape}</clipPath>
-    <linearGradient id="${id}-fill" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0%" stop-color="${t.alt}"/>
-      <stop offset="100%" stop-color="${t.base}"/>
-    </linearGradient>
-  </defs>
+  <defs><clipPath id="${id}-frame"><rect x="0" y="0" width="400" height="400"/></clipPath></defs>
   <g clip-path="url(#${id}-frame)">
-    <rect x="0" y="0" width="400" height="400" fill="${t.washA}"/>
-    ${
-      aligned
-        ? `<rect x="0" y="258" width="400" height="142" fill="${t.washB}"/>`
-        : `<path d="M 0 300 L 400 196 L 400 400 L 0 400 Z" fill="${t.washB}"/>`
-    }
-    ${sharp ? "" : halo}
-    ${mainShape(`url(#${id}-fill)`)}
-    <g transform="rotate(${bandTilt} 200 ${bandMid})">
-      <g opacity="0.92">${band(t.base)}</g>
-      <g clip-path="url(#${id}-main)">${band(t.deep)}</g>
-    </g>
-    ${
-      sharp
-        ? `<rect x="0" y="0" width="${outward ? 104 : 80}" height="${outward ? 104 : 80}" fill="${t.deep}" opacity="0.9"/>`
-        : ""
-    }
-    ${
-      outward
-        ? ""
-        : aligned
-          ? `<rect x="0" y="368" width="400" height="6" fill="${t.deep}" opacity="0.55"/>`
-          : `<path d="M 0 380 L 400 344" stroke="${t.deep}" stroke-width="6" opacity="0.5"/>`
-    }
+    <rect x="0" y="0" width="400" height="400" fill="${PAPER}"/>
+    <line x1="30" y1="${GROUND}" x2="370" y2="${GROUND}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
+    ${creatureMarkup(code, k)}
   </g>`;
 }

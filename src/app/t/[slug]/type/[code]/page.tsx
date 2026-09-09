@@ -10,6 +10,10 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SceneIllustration } from "@/components/SceneIllustration";
 import { Reveal, TypeGuideNav } from "@/components/TypeGuide";
+import { TraitTiles } from "@/components/TraitTiles";
+import { TypeCard } from "@/components/TypeCard";
+import { TypeSpectrum } from "@/components/Spectrum";
+import { chapterLayout } from "@/lib/prose";
 import { freeView, listPublishedPacks, listResultCodes, loadPack } from "@/lib/content";
 import type { GuideChapter, ResultDoc } from "@/lib/types";
 import { absolute, breadcrumbSchema, faqSchema, typeArticleSchema } from "@/lib/seo";
@@ -74,7 +78,13 @@ export async function generateMetadata({
   }
 }
 
-/** 一节正文。结构由内容包声明，这里只负责怎么摆。 */
+/**
+ * 一节正文。结构由内容包声明，这里只负责怎么摆。
+ *
+ * 六节如果都是「头图 + 标题 + 两段」，滑到第三节就已经分不清读到哪儿了。
+ * 所以版式按这一节自己有什么来选（见 chapterLayout）：
+ * 有对照栏的不出图，两栏本身就是画面；出图的几节左右交替。
+ */
 function Chapter({
   chapter,
   index,
@@ -84,23 +94,42 @@ function Chapter({
   index: number;
   next?: GuideChapter;
 }) {
+  const layout = chapterLayout(chapter, index);
+
+  const heading = (
+    <div className="guide-chapter-title">
+      <p className="guide-chapter-index">
+        <span>{String(index + 1).padStart(2, "0")}</span>
+        {chapter.nav}
+      </p>
+      <h2 className="h2">{chapter.title}</h2>
+      {/* 结论做成引用卡：不读正文的用户，至少把这一句带走 */}
+      <p className="guide-lead">{chapter.lead}</p>
+    </div>
+  );
+
   return (
-    <section id={chapter.id} className="guide-chapter">
-      {/* 章节头图铺满整块：这一页很长，用户是滑着读的，图先说明这一节在讲什么 */}
-      <SceneIllustration
-        scene={chapter.scene}
-        className="guide-chapter-banner"
-        variant="banner"
-        decorative
-      />
-      <div className="guide-chapter-title">
-        <p className="guide-chapter-index">
-          <span>{String(index + 1).padStart(2, "0")}</span>
-          {chapter.nav}
-        </p>
-        <h2 className="h2">{chapter.title}</h2>
-        <p className="guide-lead">{chapter.lead}</p>
-      </div>
+    <section id={chapter.id} className="guide-chapter" data-layout={layout}>
+      {layout === "banner" && (
+        <>
+          <SceneIllustration
+            scene={chapter.scene}
+            className="guide-chapter-banner"
+            variant="banner"
+            decorative
+          />
+          {heading}
+        </>
+      )}
+
+      {(layout === "split" || layout === "split-reverse") && (
+        <div className="guide-split" data-flip={layout === "split-reverse" ? "true" : undefined}>
+          <SceneIllustration scene={chapter.scene} className="guide-split-art" decorative />
+          {heading}
+        </div>
+      )}
+
+      {layout === "plain" && heading}
 
       {chapter.paragraphs.map((para) => (
         <p className="guide-para" key={para.slice(0, 12)}>
@@ -214,6 +243,9 @@ export default async function TypePage({
               {doc.code} {doc.name}是什么样的人
             </h1>
             <p className="type-hero-lead">{copy.heroLead}</p>
+            {/* 关键词从一排 chip 换成瓦片：三个词各占一格，也是首屏唯一的横向节奏 */}
+            <p className="guide-traits-title">{copy.traitsTitle}</p>
+            <TraitTiles code={doc.code} keywords={doc.keywords} />
             <p className="wrap type-hero-meta">
               <span className="chip">{chapters.length} 节</span>
               <span className="chip">约 3 分钟读完</span>
@@ -251,6 +283,25 @@ export default async function TypePage({
             ))}
 
             <Reveal>
+              {/*
+               * 这个类型大致落在四条轴的哪一边。
+               *
+               * 光谱组件自己会标「示意位置，不代表你的实际作答」，
+               * 所以它不会被读成某个人的得分；四条极的说明文字也因此回到了
+               * 这个可索引页面上（之前只在结果页出现过）。
+               */}
+              <section className="card guide-axes">
+                <h2 className="h3">{copy.spectrumTitle}</h2>
+                <p className="small muted guide-letters-hint">{copy.spectrumHint}</p>
+                <TypeSpectrum
+                  dimensions={pack.scoring.dimensions}
+                  code={doc.code}
+                  codeOrder={pack.scoring.codeOrder ?? pack.scoring.dimensions.map((d) => d.id)}
+                />
+              </section>
+            </Reveal>
+
+            <Reveal>
               <section className="card guide-letters">
                 <h2 className="h3">{copy.lettersTitle.replace("{code}", doc.code)}</h2>
                 <p className="small muted guide-letters-hint">{copy.lettersHint}</p>
@@ -281,10 +332,13 @@ export default async function TypePage({
                   {doc.withOthers.map((item) => {
                     const other = pack.results[item.code];
                     return (
-                      <Link key={item.code} href={`/t/${slug}/type/${item.code}`} className="type-link">
-                        <b>{item.code}</b>
-                        <span>{other?.name ?? ""}</span>
-                      </Link>
+                      <TypeCard
+                        key={item.code}
+                        href={`/t/${slug}/type/${item.code}`}
+                        code={item.code}
+                        name={other?.name ?? ""}
+                        size={40}
+                      />
                     );
                   })}
                 </div>

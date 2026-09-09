@@ -5,7 +5,9 @@ import { readOpenId } from "@/lib/wechat/identity";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChapterCards } from "@/components/ChapterCards";
 import { Checkout } from "@/components/Checkout";
+import { ReportSkeleton } from "@/components/ReportSkeleton";
 import { SectionHead } from "@/components/Icon";
 import { LockedPreview } from "@/components/LockedPreview";
 import { ScoreSpectrum } from "@/components/Spectrum";
@@ -16,6 +18,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SceneIllustration, SceneSectionHeading, illustrationFor } from "@/components/SceneIllustration";
 import { TrackView } from "@/components/TrackView";
 import { freeView, listResultCodes, loadPack } from "@/lib/content";
+import { posterAxes } from "@/lib/poster";
 import { prisma } from "@/lib/db";
 import { hasPaidAccess } from "@/lib/entitlement";
 import { claimDiscount, quote } from "@/lib/pricing";
@@ -92,15 +95,15 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
       : await quote(attempt.id, { sessionKey, openId }, pack.paywall);
   const reportIllustration = illustrationFor(illustrations.placements.resultReport);
 
+  // 公开解读是免费字段。挑出带对照栏的那一节，未付费时直接展示在结果页
+  const chapters = doc.guide ?? [];
+  const freeVersus = chapters.find((chapter) => chapter.good && chapter.hard);
+
   /*
-   * 海报卡底的四维摘要。用户截首屏那一张就够了，不用再截光谱那一块。
-   * percent 是偏向 positivePole 的程度，这里取命中那一端的强度，和 pole 对齐。
+   * 海报卡上的四条轴。用户截首屏那一张就够了，不用再截光谱那一块。
+   * 模型和分享卡共用同一个文件，两边不会各算各的。
    */
-  const posterSummary = pack.scoring.dimensions
-    .map((dim) => dimensions.find((score) => score.id === dim.id))
-    .filter((score): score is DimensionScore => Boolean(score))
-    .map((score) => `${score.pole} ${Math.round(Math.max(score.percent, 100 - score.percent))}%`)
-    .join(" · ");
+  const posterAxisRows = posterAxes(pack.scoring.dimensions, dimensions);
 
   return (
     <>
@@ -116,9 +119,11 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
             testName={ui.result.posterEyebrow}
             stamp={pack.meta.name}
             heading
-            summary={posterSummary || undefined}
+            axes={posterAxisRows}
+            creedLabel={ui.share.creedLabel}
             host={new URL(siteUrl()).host}
           />
+          <p className="small muted poster-hint">{ui.result.posterHint}</p>
           <ShareBar attemptId={attempt.id} slug={attempt.slug} code={attempt.code} version={attempt.packVersion} label={doc.label} />
 
           {/* 得分先给图。用户看维度位置比看文字快得多 */}
@@ -155,6 +160,45 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
             </div>
           )}
 
+          {/*
+           * 未付费时这一页原来只剩一张卡、四条轴和 62 字预览，薄得像还没加载完。
+           * 但这个类型的公开解读本来就免费，只是全躺在类型页上。
+           * 把其中的对照栏搬过来，再给出其余几节的入口——不复制正文，正文只有一份。
+           */}
+          {!paid && freeVersus && (
+            <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+              <SectionHead icon="spark" title={ui.result.freeGuideTitle} hint={ui.result.freeGuideHint} />
+              <div className="versus">
+                <div className="versus-col is-good">
+                  <h3>{freeVersus.goodTitle ?? "长处"}</h3>
+                  <ul>
+                    {freeVersus.good?.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="versus-col is-bad">
+                  <h3>{freeVersus.hardTitle ?? "难处"}</h3>
+                  <ul>
+                    {freeVersus.hard?.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {!paid && chapters.length > 0 && (
+            <section className="stack" style={{ "--stack-gap": "0.75rem" } as React.CSSProperties}>
+              <SectionHead icon="list" title={ui.result.chaptersTitle} hint={ui.result.chaptersHint} />
+              <ChapterCards
+                chapters={chapters}
+                href={`/t/${attempt.slug}/type/${attempt.code}`}
+              />
+            </section>
+          )}
+
 
           <hr className="divider" />
 
@@ -180,6 +224,8 @@ export default async function ResultPage({ params }: { params: Promise<{ resultI
           ) : (
             <>
               <TrackView name="paywall_view" slug={attempt.slug} attemptId={attempt.id} />
+              {/* 报告长什么样，画骨架比写承诺直观。里面没有一个字是正文 */}
+              <ReportSkeleton caption={ui.checkout.skeletonCaption} />
               {priced && (
                 <Checkout
                   attemptId={attempt.id}
