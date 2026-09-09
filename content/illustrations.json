@@ -1,66 +1,84 @@
 {
-  "version": "2.0.0",
+  "version": "3.1.0",
   "assets": {
     "discovery": {
-      "kind": "svg",
-      "art": "discovery",
-      "alt": "一个人站在镜子前，观察镜中不同情境下的自己",
+      "kind": "image",
+      "src": "/illustrations/discovery-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "一位年轻人手持笔记本，身后层叠的画面呈现独处、交流、聆听与观察等不同情境",
       "title": "看见不同情境里的自己",
       "description": "从日常选择出发，认识此刻的行为偏好。"
     },
     "energy": {
-      "kind": "svg",
-      "art": "energy",
-      "alt": "有人在树下安静阅读，有人在一旁轻松交谈，呈现两种恢复精力的方式",
+      "kind": "image",
+      "src": "/illustrations/energy-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "一边是独自阅读休息，一边是与朋友交谈，两种恢复精力的方式并列呈现",
       "title": "精力，从哪里回来",
       "description": "独处或交流，你通常怎样恢复精力？"
     },
     "information": {
-      "kind": "svg",
-      "art": "information",
-      "alt": "两个人观察同一株植物，一人用放大镜看叶片细节，一人把观察连接成图景",
+      "kind": "image",
+      "src": "/illustrations/information-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "两位年轻人观察同一株植物，一人放大叶片细节，一人把叶片和环境图景连接起来",
       "title": "你先看见细节，还是可能",
       "description": "接收信息时，留意事实与细节，或联想到更大的图景。"
     },
     "decisions": {
-      "kind": "svg",
-      "art": "decisions",
-      "alt": "一个人在桌前同时观察逻辑拼块与代表感受的心形，思考如何做出选择",
+      "kind": "image",
+      "src": "/illustrations/decisions-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "一位年轻人在桌前同时查看结构化线索和关系情境，综合考虑如何选择",
       "title": "做选择时，你在意什么",
       "description": "权衡逻辑，也体会感受，看看自己更常从哪里出发。"
     },
     "rhythm": {
-      "kind": "svg",
-      "art": "rhythm",
-      "alt": "两个人准备出行，一人整理有序的计划卡片，一人探索地图上的不同路线",
+      "kind": "image",
+      "src": "/illustrations/rhythm-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "两位年轻人围绕同一张地图规划路线，一条直接，一条沿途探索，最后通向同一地点",
       "title": "按计划走，或边走边看",
       "description": "面对日常安排，你偏好确定的节奏，还是灵活的空间？"
     },
     "growth": {
-      "kind": "svg",
-      "art": "growth",
-      "alt": "一个人用小水壶照料处于不同生长阶段的植物，旁边放着打开的笔记本",
+      "kind": "image",
+      "src": "/illustrations/growth-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "一位年轻人照料处在不同状态的植物，桌上摊着笔记本和换盆工具",
       "title": "认识自己，然后向前一点",
       "description": "把对偏好的理解，变成日常里可以尝试的小行动。"
     },
     "relationships": {
-      "kind": "svg",
-      "art": "relationships",
-      "alt": "两个人相对而坐，交换形状不同的对话拼块，尝试理解彼此的表达",
+      "kind": "image",
+      "src": "/illustrations/relationships-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "两位年轻人相对而坐交谈，两块不同颜色的对话形状在中间重叠",
       "title": "理解自己，也理解彼此",
       "description": "从不同的表达与相处方式里，找到更舒服的连接。"
     },
     "love": {
-      "kind": "svg",
-      "art": "love",
-      "alt": "两个人并排坐在长椅上，中间浮着一颗心",
+      "kind": "image",
+      "src": "/illustrations/love-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "两位年轻人在安静的夜晚认真交谈，身后的层叠画面呈现彼此不同又交汇的生活期待",
       "title": "喜欢一个人的时候",
       "description": "在亲近的关系里，各自习惯用什么方式表达在意。"
     },
     "career": {
-      "kind": "svg",
-      "art": "career",
-      "alt": "一个人在桌前工作，墙上的看板显示逐级上升的三根柱子",
+      "kind": "image",
+      "src": "/illustrations/career-v2.jpg",
+      "width": 768,
+      "height": 768,
+      "alt": "一位年轻人在桌前阅读反馈，身后同时呈现独立专注和团队协作的工作情境",
       "title": "工作里的样子",
       "description": "什么样的任务和环境，能让一个人发挥得更顺。"
     }

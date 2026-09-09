@@ -7,6 +7,7 @@ type SceneAsset = {
   kind?: string;
   art?: string;
   src?: string;
+  webpSrc?: string;
   width?: number;
   height?: number;
   alt: string;
@@ -23,7 +24,8 @@ export function illustrationFor(scene: string): SceneAsset | null {
  * 情境插画。场景与文案来自 content/illustrations.json，组件里不写死画面和描述。
  *
  * 清单声明 kind: "svg" 时渲染内联矢量画面（见 SceneArt），
- * 其余走 <picture>，为还没换成矢量的位图资源保留旧路径。
+ * 其余走 <picture>。高纹理插画可以直接使用 JPEG；PNG 资源仍会自动尝试
+ * 同名 WebP，也可以在清单中显式声明 webpSrc。
  */
 export function SceneIllustration({
   scene,
@@ -37,7 +39,7 @@ export function SceneIllustration({
   priority?: boolean;
   /** 旁边已经有等价文字时传 true，避免读屏重复播报 */
   decorative?: boolean;
-  /** banner 是铺满一整块的 8:5 头图，只有矢量场景支持 */
+  /** banner 使用中央安全区裁成铺满一整块的 8:5 头图 */
   variant?: "square" | "banner";
 }) {
   const asset = illustrationFor(scene);
@@ -45,7 +47,7 @@ export function SceneIllustration({
 
   if (asset.kind === "svg" && asset.art && hasSceneArt(asset.art)) {
     return (
-      <div className={`scene-illustration ${className}`}>
+      <div className={`scene-illustration scene-illustration--${variant} ${className}`}>
         <SceneArt art={asset.art} label={asset.alt} decorative={decorative} variant={variant} />
       </div>
     );
@@ -53,11 +55,13 @@ export function SceneIllustration({
 
   if (!asset.src) return null;
 
+  const webpSrc = asset.webpSrc
+    ?? (asset.src.endsWith(".png") ? asset.src.replace(/\.png$/, ".webp") : undefined);
+
   return (
-    <div className={`scene-illustration ${className}`}>
+    <div className={`scene-illustration scene-illustration--${variant} ${className}`}>
       <picture>
-        <source srcSet={asset.src.replace(/\.png$/, ".webp")} type="image/webp" />
-        {/* Both formats are optimized locally; picture also preserves the PNG fallback on older browsers. */}
+        {webpSrc && <source srcSet={webpSrc} type="image/webp" />}
         <img
           className="scene-image"
           src={asset.src}

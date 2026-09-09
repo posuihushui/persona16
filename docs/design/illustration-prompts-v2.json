@@ -1,0 +1,60 @@
+{
+  "version": "2.1.0",
+  "date": "2026-09-09",
+  "tool": "Built-in image_gen",
+  "direction": "情绪拼贴 · 矿物色",
+  "referenceRole": "The selected visual option defines art direction only. Every production scene is newly generated and contains no copied characters, text, or layout.",
+  "sharedPrompt": "Use case: editorial illustration for a Chinese mobile self-reflection quiz. Create one finished SQUARE scene in a sophisticated handmade cut-paper collage style for young adults. Warm mineral paper background; torn paper edges, visible paper fibers, translucent overlapping blocks, subtle print grain, flat 2D composition. Use natural adult body proportions, contemporary everyday clothing, restrained expressions and clear gestures. Palette: warm mineral paper #F3F0E9, deep ink navy #172033, desaturated sage #6F7D72, mineral blue-gray #7D8B93, mushroom taupe #A49787, with muted terracotta #9B624F limited to 5–8%. Build hierarchy with value contrast and neutral space rather than extra hues. Keep the subject and all meaning-bearing props within the central 88% so the square can also be cropped to a horizontal 8:5 banner. No text, letters, logos, watermark, emoji, diagnostic or medical imagery, type superiority, gender stereotypes, childish mascot anatomy, glossy 3D, photorealism, dramatic lighting, or decorative symbols without meaning. Both sides of any preference contrast must have equal visual weight.",
+  "paletteRevision": {
+    "date": "2026-09-09",
+    "reason": "The first pass used too many equally prominent mid-saturation colors and felt lifestyle-oriented rather than restrained.",
+    "editInstruction": "Change only the color system. Preserve composition, people, poses, faces, anatomy, props, torn-paper edges, grain, crop, negative space and meaning. Reduce total saturation by about 35%; remove baby blue, pastel peach, bright coral and sunny yellow. Keep natural neutral skin tones."
+  },
+  "assets": [
+    {
+      "id": "discovery",
+      "output": "public/illustrations/discovery-v2.jpg",
+      "scenePrompt": "A thoughtful young adult holding an open notebook. Behind them, overlapping paper windows show small everyday scenes of being alone, talking, listening and observing. The central figure is the clear focal point; the surrounding fragments feel like remembered moments rather than separate comic panels."
+    },
+    {
+      "id": "energy",
+      "output": "public/illustrations/energy-v2.jpg",
+      "scenePrompt": "Two equally inviting ways of recovering energy in one balanced scene: a young adult reading quietly on one side, and two friends having a relaxed conversation on the other. Use a soft visual bridge between the sides; neither person looks lonely, exhausted or superior."
+    },
+    {
+      "id": "information",
+      "output": "public/illustrations/information-v2.jpg",
+      "scenePrompt": "Two young adults observe the same botanical plant. One looks closely at the texture and shape of a leaf; the other connects the plant to its surrounding garden and weather. Show detailed observation and a wider pattern with equal importance, without intelligence symbolism."
+    },
+    {
+      "id": "decisions",
+      "output": "public/illustrations/decisions-v2.jpg",
+      "scenePrompt": "A young adult at a table considers structured notes and a human relationship situation at the same time. Use paper fragments, an open notebook and two balanced situational windows to show weighing logic and feelings together. No heart icon, scales of justice or distress."
+    },
+    {
+      "id": "rhythm",
+      "output": "public/illustrations/rhythm-v2.jpg",
+      "scenePrompt": "Two young adults plan around the same open map. One route goes directly toward a destination; the other leaves room for discoveries along the way. Both routes arrive at the same place. Keep the map and route gesture central, and avoid chaotic travel clutter."
+    },
+    {
+      "id": "growth",
+      "output": "public/illustrations/growth-v2.jpg",
+      "scenePrompt": "A young adult gently cares for plants in different states of growth, with an open notebook and repotting tools nearby. The mood is patient and reflective; show small repeatable actions rather than a success trophy or dramatic before-and-after transformation."
+    },
+    {
+      "id": "relationships",
+      "output": "public/illustrations/relationships-v2.jpg",
+      "scenePrompt": "Two young adults sit facing each other in attentive conversation. Two differently colored paper speech shapes overlap between them, expressing listening and partial understanding without romance cues. Both figures have equal visual presence."
+    },
+    {
+      "id": "love",
+      "output": "public/illustrations/love-v2.jpg",
+      "scenePrompt": "Two young adults have a sincere conversation in a calm evening setting. Layered paper scenes behind them suggest different daily routines and future expectations that partially meet. Convey intimacy through attention and shared space, not hearts, gender roles or an idealized couple pose."
+    },
+    {
+      "id": "career",
+      "output": "public/illustrations/career-v2.jpg",
+      "scenePrompt": "A young adult reads constructive feedback at a desk. Layered scenes behind them show independent focused work and collaborative teamwork with equal value. Avoid upward charts, money, promotion ladders, hustle culture and success trophies."
+    }
+  ]
+}

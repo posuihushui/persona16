@@ -1449,6 +1449,15 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
   object-fit: contain;
 }
 
+/* 类型长文里的章节头图使用横向裁切；关键人物与道具都留在素材中央安全区。 */
+.scene-illustration--banner > picture {
+  padding-bottom: 62.5%;
+}
+
+.scene-illustration--banner .scene-image {
+  object-fit: cover;
+}
+
 .illustrated-page {
   padding-top: calc(1.25rem + var(--safe-top));
   padding-bottom: calc(2.5rem + var(--safe-bottom));
@@ -2700,11 +2709,10 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), summary:focus:not
 }
 
 
-/* ============ 14. 情境插画（矢量）与画面里的动画 ============ */
+/* ============ 14. 情境插画与矢量画面里的动画 ============ */
 /*
- * 位图换成内联 SVG 之后，插画不再需要固定比例容器：svg 自带 viewBox，
- * 宽度给 100%、高度 auto 就是正方形。旧的 <picture> 规则仍留着，
- * 清单里还没换成矢量的资源继续走那条路径。
+ * SVG 自带 viewBox，宽度给 100%、高度 auto 就是正方形。高纹理的拼贴版
+ * 走上面的 <picture> 规则；两条渲染路径共用尺寸类和圆角。
  *
  * 画面里的动作幅度都压得很小（2–6px、3–8 秒一轮）。
  * 目的是让页面看起来是活的，不是让人盯着看动画，
